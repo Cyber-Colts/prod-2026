@@ -1,16 +1,14 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.ResetMode;
+import com.revrobotics.PersistMode;
 
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -26,7 +24,7 @@ public class Floor extends SubsystemBase {
 
         private final double percentOutput;
 
-        private Speed(double percentOutput) {
+        Speed(double percentOutput) {
             this.percentOutput = percentOutput;
         }
 
@@ -35,35 +33,29 @@ public class Floor extends SubsystemBase {
         }
     }
 
-    private final TalonFX motor;
-    private final VoltageOut voltageRequest = new VoltageOut(0);
+    private final SparkMax motor;
+    private final RelativeEncoder encoder;
 
     public Floor() {
-        motor = new TalonFX(Ports.kFloor, Ports.kRoboRioCANBus);
+        motor = new SparkMax(Ports.kFloor, MotorType.kBrushless);
+        encoder = motor.getEncoder();
 
-        final TalonFXConfiguration config = new TalonFXConfiguration()
-            .withMotorOutput(
-                new MotorOutputConfigs()
-                    .withInverted(InvertedValue.Clockwise_Positive)
-                    .withNeutralMode(NeutralModeValue.Brake)
-            )
-            .withCurrentLimits(
-                new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(120))
-                    .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(30))
-                    .withSupplyCurrentLimitEnable(true)
-            );
+        // Configure motor using new 2026 API
+        SparkMaxConfig config = new SparkMaxConfig();
+        config
+            .inverted(true)
+            .idleMode(IdleMode.kBrake)
+            .smartCurrentLimit(30)  // Supply current limit
+            .secondaryCurrentLimit(120);  // Stator current limit
 
-        motor.getConfigurator().apply(config);
+        // Apply configuration and persist to flash
+        motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
         SmartDashboard.putData(this);
     }
 
     public void set(Speed speed) {
-        motor.setControl(
-            voltageRequest
-                .withOutput(speed.voltage())
-        );
+        motor.setVoltage(speed.voltage().in(Volts));
     }
 
     public Command feedCommand() {
@@ -73,8 +65,7 @@ public class Floor extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("RPM", () -> motor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Stator Current", () -> motor.getStatorCurrent().getValue().in(Amps), null);
-        builder.addDoubleProperty("Supply Current", () -> motor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("RPM", encoder::getVelocity, null);
+        builder.addDoubleProperty("Output Current", motor::getOutputCurrent, null);
     }
 }

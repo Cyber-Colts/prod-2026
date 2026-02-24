@@ -8,17 +8,19 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.FeedbackConfigs;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.ResetMode;
+import com.revrobotics.PersistMode;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -29,7 +31,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
 
 public class Intake extends SubsystemBase {
@@ -66,18 +67,22 @@ public class Intake extends SubsystemBase {
     }
 
     private static final double kPivotReduction = 50.0;
-    private static final AngularVelocity kMaxPivotSpeed = KrakenX60.kFreeSpeed.div(kPivotReduction);
+    private static final double kNEOFreeSpeed = 5880.0; // RPM
+    private static final AngularVelocity kMaxPivotSpeed = RPM.of(kNEOFreeSpeed).div(kPivotReduction);
     private static final Angle kPositionTolerance = Degrees.of(5);
 
-    private final TalonFX pivotMotor, rollerMotor;
-    private final VoltageOut pivotVoltageRequest = new VoltageOut(0);
-    private final MotionMagicVoltage pivotMotionMagicRequest = new MotionMagicVoltage(0).withSlot(0);
+    private final SparkMax pivotMotor;
+    private final RelativeEncoder pivotEncoder;
+    private final TalonFX rollerMotor;
     private final VoltageOut rollerVoltageRequest = new VoltageOut(0);
+
+    private double targetPivotPosition = 0.0;
 
     private boolean isHomed = false;
 
     public Intake() {
-        pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kCANivoreCANBus);
+        pivotMotor = new SparkMax(Ports.kIntakePivot, MotorType.kBrushless);
+        pivotEncoder = pivotMotor.getEncoder();
         rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
         configurePivotMotor();
         configureRollerMotor();
@@ -85,37 +90,25 @@ public class Intake extends SubsystemBase {
     }
 
     private void configurePivotMotor() {
-        final TalonFXConfiguration config = new TalonFXConfiguration()
-            .withMotorOutput(
-                new MotorOutputConfigs()
-                    .withInverted(InvertedValue.CounterClockwise_Positive)
-                    .withNeutralMode(NeutralModeValue.Brake)
-            )
-            .withCurrentLimits(
-                new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(120))
-                    .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(70))
-                    .withSupplyCurrentLimitEnable(true)
-            )
-            .withFeedback(
-                new FeedbackConfigs()
-                    .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor)
-                    .withSensorToMechanismRatio(kPivotReduction)
-            )
-            .withMotionMagic(
-                new MotionMagicConfigs()
-                    .withMotionMagicCruiseVelocity(kMaxPivotSpeed)
-                    .withMotionMagicAcceleration(kMaxPivotSpeed.per(Second))
-            )
-            .withSlot0(
-                new Slot0Configs()
-                    .withKP(300)
-                    .withKI(0)
-                    .withKD(0)
-                    .withKV(12.0 / kMaxPivotSpeed.in(RotationsPerSecond)) // 12 volts when requesting max RPS
-            );
-        pivotMotor.getConfigurator().apply(config);
+        SparkMaxConfig config = new SparkMaxConfig();
+        config
+            .inverted(true)
+            .idleMode(IdleMode.kBrake)
+            .smartCurrentLimit(70);  // Supply current limit in Amps
+
+        // Configure the encoder
+        config.encoder
+            .positionConversionFactor(360.0 / kPivotReduction)  // Convert to degrees
+            .velocityConversionFactor(360.0 / kPivotReduction / 60.0);  // Convert to degrees per second
+
+        // Configure PID controller for position control
+        config.closedLoop
+            .p(0.05)
+            .i(0)
+            .d(0);
+
+        // Apply configuration and persist to flash
+        pivotMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     private void configureRollerMotor() {
@@ -136,22 +129,20 @@ public class Intake extends SubsystemBase {
     }
 
     private boolean isPositionWithinTolerance() {
-        final Angle currentPosition = pivotMotor.getPosition().getValue();
-        final Angle targetPosition = pivotMotionMagicRequest.getPositionMeasure();
-        return currentPosition.isNear(targetPosition, kPositionTolerance);
+        final double currentPosition = pivotEncoder.getPosition();
+        return Math.abs(currentPosition - targetPivotPosition) <= kPositionTolerance.in(Degrees);
     }
 
     private void setPivotPercentOutput(double percentOutput) {
-        pivotMotor.setControl(
-            pivotVoltageRequest
-                .withOutput(Volts.of(percentOutput * 12.0))
-        );
+        pivotMotor.set(percentOutput);
     }
 
+    @SuppressWarnings("removal")
     public void set(Position position) {
-        pivotMotor.setControl(
-            pivotMotionMagicRequest
-                .withPosition(position.angle())
+        targetPivotPosition = position.angle().in(Degrees);
+        pivotMotor.getClosedLoopController().setReference(
+            targetPivotPosition,
+            com.revrobotics.spark.SparkBase.ControlType.kPosition
         );
     }
 
@@ -192,9 +183,9 @@ public class Intake extends SubsystemBase {
     public Command homingCommand() {
         return Commands.sequence(
             runOnce(() -> setPivotPercentOutput(0.1)),
-            Commands.waitUntil(() -> pivotMotor.getSupplyCurrent().getValue().in(Amps) > 6),
+            Commands.waitUntil(() -> pivotMotor.getOutputCurrent() > 6),
             runOnce(() -> {
-                pivotMotor.setPosition(Position.HOMED.angle());
+                pivotEncoder.setPosition(0);
                 isHomed = true;
                 set(Position.STOWED);
             })
@@ -206,9 +197,9 @@ public class Intake extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("Angle (degrees)", () -> pivotMotor.getPosition().getValue().in(Degrees), null);
+        builder.addDoubleProperty("Angle (degrees)", () -> pivotEncoder.getPosition(), null);
         builder.addDoubleProperty("RPM", () -> rollerMotor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Pivot Supply Current", () -> pivotMotor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("Pivot Output Current", () -> pivotMotor.getOutputCurrent(), null);
         builder.addDoubleProperty("Roller Supply Current", () -> rollerMotor.getSupplyCurrent().getValue().in(Amps), null);
     }
 }
