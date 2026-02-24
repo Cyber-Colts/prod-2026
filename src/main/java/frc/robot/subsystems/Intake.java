@@ -103,9 +103,18 @@ public class Intake extends SubsystemBase {
 
         // Configure PID controller for position control
         config.closedLoop
-            .p(0.05)
+            .p(300)
             .i(0)
             .d(0);
+
+        // Configure feedforward (SparkFlex style, match Kraken kV usage)
+        config.closedLoop.feedForward
+            .kS(0)
+            .kV(12.0 / kMaxPivotSpeed.in(RotationsPerSecond))  // 12 volts when requesting max RPS
+            .kA(0)
+            .kG(0)
+            .kCos(0)
+            .kCosRatio(1.0);
 
         // Apply configuration and persist to flash
         pivotMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
