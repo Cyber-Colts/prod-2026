@@ -83,7 +83,7 @@ public class Intake extends SubsystemBase {
     public Intake() {
         pivotMotor = new SparkMax(Ports.kIntakePivot, MotorType.kBrushless);
         pivotEncoder = pivotMotor.getEncoder();
-        rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
+        rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kCANivoreCANBus);
         configurePivotMotor();
         configureRollerMotor();
         SmartDashboard.putData(this);
@@ -94,7 +94,7 @@ public class Intake extends SubsystemBase {
         config
             .inverted(true)
             .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(70);  // Supply current limit in Amps
+            .smartCurrentLimit(50);  // Supply current limit in Amps
 
         // Configure the encoder
         config.encoder
@@ -103,7 +103,7 @@ public class Intake extends SubsystemBase {
 
         // Configure PID controller for position control
         config.closedLoop
-            .p(300)
+            .p(0.3)
             .i(0)
             .d(0);
 
@@ -206,9 +206,9 @@ public class Intake extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("Angle (degrees)", () -> pivotEncoder.getPosition(), null);
+        builder.addDoubleProperty("Angle (degrees)", pivotEncoder::getPosition, null);
         builder.addDoubleProperty("RPM", () -> rollerMotor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Pivot Output Current", () -> pivotMotor.getOutputCurrent(), null);
+        builder.addDoubleProperty("Pivot Output Current", pivotMotor::getOutputCurrent, null);
         builder.addDoubleProperty("Roller Supply Current", () -> rollerMotor.getSupplyCurrent().getValue().in(Amps), null);
     }
 }

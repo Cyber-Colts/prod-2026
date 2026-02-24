@@ -84,7 +84,7 @@ public final class SubsystemCommands {
     public Command shootManually() {
         return shooter.dashboardSpinUpCommand()
             .andThen(feed())
-            .handleInterrupt(() -> shooter.stop());
+            .handleInterrupt(shooter::stop);
     }
 
     private Command feed() {
