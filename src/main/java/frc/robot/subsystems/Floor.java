@@ -45,8 +45,8 @@ public class Floor extends SubsystemBase {
         config
             .inverted(true)
             .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(30)  // Supply current limit
-            .secondaryCurrentLimit(60);  // Stator current limit
+            .smartCurrentLimit(40)  // Supply current limit
+            .secondaryCurrentLimit(40);  // Stator current limit
 
         // Apply configuration and persist to flash
         motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
