@@ -8,6 +8,8 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.Optional;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -90,6 +92,11 @@ public class RobotContainer {
     private void configureBindings() {
         configureManualDriveBindings();
         limelight.setDefaultCommand(updateVisionCommand());
+
+        // Idle the swerve while disabled so motors hold neutral mode instead of fighting
+        RobotModeTriggers.disabled().whileTrue(
+            swerve.applyRequest(() -> new SwerveRequest.Idle()).ignoringDisable(true)
+        );
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
             .onTrue(intake.homingCommand())
