@@ -36,6 +36,7 @@ public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
         INTAKE(0.8);
+//        INTAKE(0.1);
 
         private final double percentOutput;
 
@@ -78,7 +79,7 @@ public class Intake extends SubsystemBase {
 
     public Intake() {
         pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kCANivoreCANBus);
-        rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
+        rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kCANivoreCANBus);
         configurePivotMotor();
         configureRollerMotor();
         SmartDashboard.putData(this);
