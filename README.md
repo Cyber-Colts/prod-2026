@@ -1,6 +1,6 @@
-# Pegasus 10211
+# Cyber Colts 10211
 
-features:
+rebuilt features:
 * auto feed-shoot with auto aim
 * aim assist
 * FOC full compatibility
