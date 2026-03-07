@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.Choreo.TrajectoryLogger;
@@ -18,8 +19,13 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -29,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import org.littletonrobotics.junction.Logger;
 
 public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.004; // 4 ms
@@ -41,6 +48,24 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
+
+    // ---- AdvantageKit / AdvantageScope telemetry state ----
+    // Last commanded module setpoints + chassis speeds so periodic() can log them
+    // under the exact keys the AdvantageScope Swerve Calibration layout expects.
+    private SwerveModuleState[] m_lastSetpoints = new SwerveModuleState[] {
+        new SwerveModuleState(), new SwerveModuleState(),
+        new SwerveModuleState(), new SwerveModuleState()
+    };
+    private ChassisSpeeds m_lastSetpointSpeeds = new ChassisSpeeds();
+
+    // Kinematics built from module positions (telemetry-only – CTRE handles control internally)
+    private static final SwerveDriveKinematics kTelemetryKinematics = new SwerveDriveKinematics(
+        new Translation2d(TunerConstants.FrontLeft.LocationX,  TunerConstants.FrontLeft.LocationY),
+        new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+        new Translation2d(TunerConstants.BackLeft.LocationX,   TunerConstants.BackLeft.LocationY),
+        new Translation2d(TunerConstants.BackRight.LocationX,  TunerConstants.BackRight.LocationY)
+    );
+    // -------------------------------------------------------
 
     /* SysId routines */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -211,6 +236,12 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             pose.getRotation().getRadians(), sample.heading
         );
 
+        // Record for AdvantageScope setpoint tabs
+        recordSetpointTelemetry(
+            kTelemetryKinematics.toSwerveModuleStates(targetSpeeds),
+            targetSpeeds
+        );
+
         setControl(
             pathFieldSpeedsRequest.withSpeeds(targetSpeeds)
                 .withWheelForceFeedforwardsX(sample.moduleForcesX())
@@ -222,10 +253,6 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     public void periodic() {
         /*
          * Periodically try to apply the operator perspective.
-         * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
-         * This allows us to correct the perspective in case the robot code restarts mid-match.
-         * Otherwise, only check and apply the operator perspective if the DS is disabled.
-         * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
          */
         if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
             DriverStation.getAlliance().ifPresent(allianceColor -> {
@@ -240,6 +267,84 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+
+        // ---- AdvantageKit / AdvantageScope telemetry ----
+        SwerveDriveState state = getState();
+
+        // --- /RealOutputs/SwerveStates/Measured  (red in AdvantageScope) ---
+        Logger.recordOutput("RealOutputs/SwerveStates/Measured", state.ModuleStates);
+
+        // --- /RealOutputs/SwerveStates/SetpointsOptimized  (cyan) ---
+        // ModuleTargets are the optimised (CTRE-side) setpoints after cosine scaling
+        Logger.recordOutput("RealOutputs/SwerveStates/SetpointsOptimized", state.ModuleTargets);
+
+        // --- /RealOutputs/SwerveStates/Setpoints  (raw commanded, before optimisation) ---
+        Logger.recordOutput("RealOutputs/SwerveStates/Setpoints", m_lastSetpoints);
+
+        // --- /RealOutputs/SwerveChassisSpeeds/Measured ---
+        Logger.recordOutput("RealOutputs/SwerveChassisSpeeds/Measured", state.Speeds);
+
+        // --- /RealOutputs/SwerveChassisSpeeds/Setpoints ---
+        Logger.recordOutput("RealOutputs/SwerveChassisSpeeds/Setpoints", m_lastSetpointSpeeds);
+
+        // --- /RealOutputs/Odometry/Robot ---
+        Logger.recordOutput("RealOutputs/Odometry/Robot", state.Pose);
+
+        // --- Per-module raw signals (Turn Calibration, Drive Calibration,
+        //     Slip Current tabs in AdvantageScope) ---
+        // Keys exactly match the calibration JSON:
+        //   /Drive/Module{0-3}/TurnPosition          (radians)
+        //   /Drive/Module{0-3}/DrivePositionRad      (radians, wheel)
+        //   /Drive/Module{0-3}/DriveVelocityRadPerSec
+        //   /Drive/Module{0-3}/DriveCurrentAmps
+        for (int i = 0; i < 4; i++) {
+            var modState = state.ModuleStates[i];
+            // Turn position in radians – exact key the calibration chart reads
+            Logger.recordOutput("Drive/Module" + i + "/TurnPosition",
+                modState.angle.getRadians());
+            // Drive position: integrate from velocity is not directly available via state,
+            // so we expose the raw encoder position through the module object
+            var module = getModule(i);
+            double drivePositionRad = Units.rotationsToRadians(
+                module.getDriveMotor().getPosition().getValueAsDouble()
+                    / TunerConstants.FrontLeft.DriveMotorGearRatio);
+            Logger.recordOutput("Drive/Module" + i + "/DrivePositionRad", drivePositionRad);
+            Logger.recordOutput("Drive/Module" + i + "/DriveVelocityRadPerSec",
+                Units.rotationsToRadians(
+                    module.getDriveMotor().getVelocity().getValueAsDouble()
+                        / TunerConstants.FrontLeft.DriveMotorGearRatio));
+            Logger.recordOutput("Drive/Module" + i + "/DriveCurrentAmps",
+                module.getDriveMotor().getStatorCurrent().getValueAsDouble());
+            Logger.recordOutput("Drive/Module" + i + "/TurnCurrentAmps",
+                module.getSteerMotor().getStatorCurrent().getValueAsDouble());
+            Logger.recordOutput("Drive/Module" + i + "/TurnAppliedVolts",
+                module.getSteerMotor().getMotorVoltage().getValueAsDouble());
+            Logger.recordOutput("Drive/Module" + i + "/DriveAppliedVolts",
+                module.getDriveMotor().getMotorVoltage().getValueAsDouble());
+        }
+        // -------------------------------------------------
+    }
+
+    /**
+     * Call this whenever you send a new velocity setpoint to the drivetrain so that
+     * AdvantageScope can overlay commanded vs. measured on the calibration tabs.
+     *
+     * @param setpoints   The four module setpoints (before CTRE optimization)
+     * @param speeds      The chassis-level commanded speeds
+     */
+    public void recordSetpointTelemetry(SwerveModuleState[] setpoints, ChassisSpeeds speeds) {
+        m_lastSetpoints = setpoints;
+        m_lastSetpointSpeeds = speeds;
+    }
+
+    /** Returns the current robot pose from the CTRE odometry estimator. */
+    public Pose2d getPose() {
+        return getState().Pose;
+    }
+
+    /** Returns the current measured chassis speeds. */
+    public ChassisSpeeds getChassisSpeeds() {
+        return getState().Speeds;
     }
 
     /**

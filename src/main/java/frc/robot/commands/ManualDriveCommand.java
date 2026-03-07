@@ -11,6 +11,8 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Driving;
@@ -49,7 +51,8 @@ public class ManualDriveCommand extends Command {
         .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
         .withSteerRequestType(SteerRequestType.MotionMagicExpo)
         .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
-        .withHeadingPID(0.25, 0, 0);
+        .withHeadingPID(5, 0, 0);
+ //         .withHeadingPID(0.25, 0, 0);
 
     private State currentState = State.IDLING;
     private Optional<Rotation2d> lockedHeading = Optional.empty();
@@ -123,22 +126,47 @@ public class ManualDriveCommand extends Command {
                         .withVelocityY(0)
                         .withRotationalRate(0)
                 );
+                swerve.recordSetpointTelemetry(
+                    new SwerveModuleState[]{ new SwerveModuleState(), new SwerveModuleState(),
+                                            new SwerveModuleState(), new SwerveModuleState() },
+                    new ChassisSpeeds()
+                );
                 break;
             case DRIVING_WITH_MANUAL_ROTATION:
                 lockHeadingIfRotationStopped(input);
+                ChassisSpeeds manualSpeeds = new ChassisSpeeds(
+                    Driving.kMaxSpeed.in(edu.wpi.first.units.Units.MetersPerSecond) * input.forward,
+                    Driving.kMaxSpeed.in(edu.wpi.first.units.Units.MetersPerSecond) * input.left,
+                    Driving.kMaxRotationalRate.in(edu.wpi.first.units.Units.RadiansPerSecond) * input.rotation
+                );
                 swerve.setControl(
                     fieldCentricRequest
                         .withVelocityX(Driving.kMaxSpeed.times(input.forward))
                         .withVelocityY(Driving.kMaxSpeed.times(input.left))
                         .withRotationalRate(Driving.kMaxRotationalRate.times(input.rotation))
                 );
+                swerve.recordSetpointTelemetry(
+                    new SwerveModuleState[]{ new SwerveModuleState(), new SwerveModuleState(),
+                                            new SwerveModuleState(), new SwerveModuleState() },
+                    manualSpeeds
+                );
                 break;
             case DRIVING_WITH_LOCKED_HEADING:
+                ChassisSpeeds lockedSpeeds = new ChassisSpeeds(
+                    Driving.kMaxSpeed.in(edu.wpi.first.units.Units.MetersPerSecond) * input.forward,
+                    Driving.kMaxSpeed.in(edu.wpi.first.units.Units.MetersPerSecond) * input.left,
+                    0
+                );
                 swerve.setControl(
                     fieldCentricFacingAngleRequest
                         .withVelocityX(Driving.kMaxSpeed.times(input.forward))
                         .withVelocityY(Driving.kMaxSpeed.times(input.left))
                         .withTargetDirection(lockedHeading.get())
+                );
+                swerve.recordSetpointTelemetry(
+                    new SwerveModuleState[]{ new SwerveModuleState(), new SwerveModuleState(),
+                                            new SwerveModuleState(), new SwerveModuleState() },
+                    lockedSpeeds
                 );
                 break;
         }
