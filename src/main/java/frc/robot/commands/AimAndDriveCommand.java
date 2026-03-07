@@ -32,7 +32,7 @@ public class AimAndDriveCommand extends Command {
         .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
         .withSteerRequestType(SteerRequestType.MotionMagicExpo)
         .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
-        .withHeadingPID(5, 0, 0);
+        .withHeadingPID(2, 0, 0);
 
     public AimAndDriveCommand(
         Swerve swerve,

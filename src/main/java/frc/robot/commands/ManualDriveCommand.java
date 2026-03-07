@@ -33,11 +33,10 @@ public class ManualDriveCommand extends Command {
         DRIVING_WITH_LOCKED_HEADING
     }
 
-    private static final Time kHeadingLockDelay = Seconds.of(0.25); // time to wait before locking heading
+    private static final Time kHeadingLockDelay = Seconds.of(0.75); // time to wait before locking heading
 
     private final Swerve swerve;
     private final DriveInputSmoother inputSmoother;
-    private final SwerveRequest.Idle idleRequest = new SwerveRequest.Idle();
 
     private final SwerveRequest.FieldCentric fieldCentricRequest = new SwerveRequest.FieldCentric()
         .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
@@ -50,7 +49,7 @@ public class ManualDriveCommand extends Command {
         .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
         .withSteerRequestType(SteerRequestType.MotionMagicExpo)
         .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
-        .withHeadingPID(5, 0, 0);
+        .withHeadingPID(0.25, 0, 0);
 
     private State currentState = State.IDLING;
     private Optional<Rotation2d> lockedHeading = Optional.empty();
@@ -118,7 +117,12 @@ public class ManualDriveCommand extends Command {
 
         switch (currentState) {
             case IDLING:
-                swerve.setControl(idleRequest);
+                swerve.setControl(
+                    fieldCentricRequest
+                        .withVelocityX(0)
+                        .withVelocityY(0)
+                        .withRotationalRate(0)
+                );
                 break;
             case DRIVING_WITH_MANUAL_ROTATION:
                 lockHeadingIfRotationStopped(input);

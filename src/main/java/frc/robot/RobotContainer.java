@@ -12,6 +12,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
@@ -27,6 +28,7 @@ import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
+import frc.robot.subsystems.NeoPixelStrip;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
 import frc.util.SwerveTelemetry;
@@ -46,21 +48,11 @@ public class RobotContainer {
     private final Hood hood = new Hood();
     private final Hanger hanger = new Hanger();
     private final Limelight limelight = new Limelight("limelight");
+    private final NeoPixelStrip neoStrip = new NeoPixelStrip(Ports.kNeoPixel, 100);
 
-    private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(Driving.kMaxSpeed.in(MetersPerSecond));
-    
+
     private final CommandPS5Controller driver = new CommandPS5Controller(0);
 
-    private final AutoRoutines autoRoutines = new AutoRoutines(
-        swerve,
-        intake,
-        floor,
-        feeder,
-        shooter,
-        hood,
-        hanger,
-        limelight
-    );
     private final SubsystemCommands subsystemCommands = new SubsystemCommands(
         swerve,
         intake,
@@ -75,8 +67,23 @@ public class RobotContainer {
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
+            for (int port = 5800; port <= 5809; port++) {
+                PortForwarder.add(port, "172.29.0.1", port);
+            }
+
         configureBindings();
+        AutoRoutines autoRoutines = new AutoRoutines(
+                swerve,
+                intake,
+                floor,
+                feeder,
+                shooter,
+                hood,
+                hanger,
+                limelight
+        );
         autoRoutines.configure();
+        SwerveTelemetry swerveTelemetry = new SwerveTelemetry(Driving.kMaxSpeed.in(MetersPerSecond));
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
     }
     
@@ -95,7 +102,20 @@ public class RobotContainer {
 
         // Idle the swerve while disabled so motors hold neutral mode instead of fighting
         RobotModeTriggers.disabled().whileTrue(
-            swerve.applyRequest(() -> new SwerveRequest.Idle()).ignoringDisable(true)
+            swerve.applyRequest(SwerveRequest.Idle::new).ignoringDisable(true)
+        );
+
+        // LED state machine
+        neoStrip.setBreathing(edu.wpi.first.wpilibj.util.Color.kBlue, 0.5, 0.05);
+        RobotModeTriggers.teleop().onTrue(
+            Commands.runOnce(() -> neoStrip.setBreathing(edu.wpi.first.wpilibj.util.Color.kAquamarine, 2.0, 0.05))
+        );
+        RobotModeTriggers.autonomous().onTrue(
+            Commands.runOnce(() -> neoStrip.setSolid(edu.wpi.first.wpilibj.util.Color.kRed))
+        );
+        RobotModeTriggers.disabled().onTrue(
+            Commands.runOnce(() -> neoStrip.setBreathing(edu.wpi.first.wpilibj.util.Color.kBlue, 0.5, 0.05))
+                .ignoringDisable(true)
         );
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())

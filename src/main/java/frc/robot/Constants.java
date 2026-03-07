@@ -23,7 +23,7 @@ public final class Constants {
     public static class Driving {
         public static final LinearVelocity kMaxSpeed = TunerConstants.kSpeedAt12Volts;
         public static final AngularVelocity kMaxRotationalRate = RotationsPerSecond.of(1);
-        public static final AngularVelocity kPIDRotationDeadband = kMaxRotationalRate.times(0.005);
+        public static final AngularVelocity kPIDRotationDeadband = kMaxRotationalRate.times(0.02);
     }
 
     public static class KrakenX60 {
