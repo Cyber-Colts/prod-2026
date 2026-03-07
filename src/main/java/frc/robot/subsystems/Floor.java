@@ -20,7 +20,11 @@ import frc.robot.Ports;
 public class Floor extends SubsystemBase {
     public enum Speed {
         STOP(0),
+        /*
+        kraken value
         FEED(0.83);
+        */
+        FEED(0.95);
 
         private final double percentOutput;
 

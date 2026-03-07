@@ -13,6 +13,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.net.PortForwarder;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
@@ -111,7 +112,7 @@ public class RobotContainer {
             Commands.runOnce(() -> neoStrip.setBreathing(edu.wpi.first.wpilibj.util.Color.kAquamarine, 2.0, 0.05))
         );
         RobotModeTriggers.autonomous().onTrue(
-            Commands.runOnce(() -> neoStrip.setSolid(edu.wpi.first.wpilibj.util.Color.kRed))
+            Commands.runOnce(() -> neoStrip.setSolid(Color.kDarkMagenta))
         );
         RobotModeTriggers.disabled().onTrue(
             Commands.runOnce(() -> neoStrip.setBreathing(edu.wpi.first.wpilibj.util.Color.kBlue, 0.5, 0.05))
