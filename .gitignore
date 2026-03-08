@@ -5,6 +5,9 @@
 # Prerequisites
 *.d
 
+### GitHup Copilot ###
+copilot-instructions.md
+
 # Compiled Object files
 *.slo
 *.lo
