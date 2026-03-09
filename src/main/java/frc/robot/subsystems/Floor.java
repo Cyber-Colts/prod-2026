@@ -24,7 +24,7 @@ public class Floor extends SubsystemBase {
         kraken value
         FEED(0.83);
         */
-        FEED(0.95);
+        FEED(0.98);
 
         private final double percentOutput;
 
