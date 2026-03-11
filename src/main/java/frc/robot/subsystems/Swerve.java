@@ -333,7 +333,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
      * Returns the direction from the robot to the hub landmark, relative to the operator forward direction.
      */
     public Rotation2d getAimDirection() {
-        Translation2d hubPosition = oldeLandmarks.hubPosition();
+        Translation2d hubPosition = oldeLandmarks.hubPosition().getTranslation();
         Translation2d robotPosition = getState().Pose.getTranslation();
         return hubPosition.minus(robotPosition).getAngle()
                 .rotateBy(getOperatorForwardDirection());
