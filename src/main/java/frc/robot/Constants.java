@@ -7,6 +7,8 @@ package frc.robot;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Distance;
@@ -53,13 +55,13 @@ public final class Constants {
         public static final AngularVelocity kFreeSpeed = RPM.of(6000);
     }
     public static class FieldConstants {
-        public static final Distance FIELD_WIDTH = Inches.of(651.22); // AprilTagFieldLayout.loadField(...).getFieldWidth() or something like that
+        public static final Distance FIELD_WIDTH = Inches.of(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldWidth());
         public static final Distance FIELD_HEIGHT = Inches.of(317.69);
     }
 
     public static class RobotDimensions {
-        public static final Distance BUMPER_WIDTH = Inches.of(35); // Bumpers add 3.5 each side so 25.5 + 7 = 32.5, but maybe add a little extra for the bumper mounts and such
-        public static final Distance ROBOT_WIDTH = Inches.of(25.625);// Measured a second time looked like 25 and 5/8 inches but maybe negligible
-        public static final Distance ROBOT_HEIGHT = Inches.of(2); // TBA
+        public static final Distance BUMPER_WIDTH = Inches.of(35); //
+        public static final Distance ROBOT_WIDTH = Inches.of(25.625);
+        public static final Distance ROBOT_HEIGHT = Inches.of(18.5); //
     }
 }

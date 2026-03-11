@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -8,7 +9,14 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import choreo.Choreo.TrajectoryLogger;
 import choreo.auto.AutoFactory;
@@ -24,6 +32,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -80,6 +89,32 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         new Translation2d(TunerConstants.BackRight.LocationX,  TunerConstants.BackRight.LocationY)
     );
 
+    // ---- PathPlanner robot config ----
+    private static final double ROBOT_MASS_KG = Units.lbsToKilograms(115);
+    private static final double ROBOT_MOI = 6;
+    private static final double WHEEL_COF = 1.2;
+    private static final RobotConfig PP_CONFIG = new RobotConfig(
+        ROBOT_MASS_KG,
+        ROBOT_MOI,
+        new ModuleConfig(
+            TunerConstants.FrontLeft.WheelRadius,
+            TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+            WHEEL_COF,
+            DCMotor.getKrakenX60Foc(1)
+                .withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
+            TunerConstants.FrontLeft.SlipCurrent,
+            1),
+        getModuleTranslations());
+
+    public static Translation2d[] getModuleTranslations() {
+        return new Translation2d[] {
+            new Translation2d(TunerConstants.FrontLeft.LocationX,  TunerConstants.FrontLeft.LocationY),
+            new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+            new Translation2d(TunerConstants.BackLeft.LocationX,   TunerConstants.BackLeft.LocationY),
+            new Translation2d(TunerConstants.BackRight.LocationX,  TunerConstants.BackRight.LocationY)
+        };
+    }
+
     // ---- SysId routines ----
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
@@ -124,6 +159,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     // ---- Drive requests ----
     /** Swerve request to apply during field-centric path following */
     private final SwerveRequest.ApplyFieldSpeeds pathFieldSpeedsRequest = new SwerveRequest.ApplyFieldSpeeds();
+    private final SwerveRequest.ApplyRobotSpeeds robotSpeedsRequest = new SwerveRequest.ApplyRobotSpeeds();
     private final PIDController pathXController = new PIDController(10, 0, 0);
     private final PIDController pathYController = new PIDController(10, 0, 0);
     private final PIDController pathThetaController = new PIDController(7, 0, 0);
@@ -143,10 +179,34 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
         pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
 
+        AutoBuilder.configure(
+            () -> getState().Pose,
+            pose -> resetPose(pose),
+            () -> getChassisSpeeds(),
+            (speeds, feedforwards) -> drive(speeds),
+            new PPHolonomicDriveController(
+                new PIDConstants(1, 0.0, 0.00),
+                new PIDConstants(1, 0.0, 0.000)
+            ),
+            PP_CONFIG,
+            () -> {
+                var alliance = DriverStation.getAlliance();
+                if (alliance.isPresent()) {
+                    return alliance.get() == DriverStation.Alliance.Red;
+                }
+                return false;
+            },
+            this);
+
         seedFieldCentric();
         if (Utils.isSimulation()) {
             startSimThread();
         }
+    }
+
+    // ---- Internal drive helper (robot-relative, used by PathPlanner) ----
+    private void drive(ChassisSpeeds speeds) {
+        setControl(robotSpeedsRequest.withSpeeds(speeds));
     }
 
     // ---- SysId commands ----
