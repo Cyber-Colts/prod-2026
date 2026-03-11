@@ -24,7 +24,7 @@ public class Floor extends SubsystemBase {
         kraken value
         FEED(0.83);
         */
-        FEED(0.98);
+        FEED(0.83);
 
         private final double percentOutput;
 
@@ -47,10 +47,10 @@ public class Floor extends SubsystemBase {
         // Configure motor using new 2026 API
         SparkMaxConfig config = new SparkMaxConfig();
         config
-            .inverted(true)
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(40)  // Supply current limit
-            .secondaryCurrentLimit(40);  // Stator current limit
+                .inverted(true)
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(40)  // Supply current limit
+                .secondaryCurrentLimit(40);  // Stator current limit
 
         // Apply configuration and persist to flash
         motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);

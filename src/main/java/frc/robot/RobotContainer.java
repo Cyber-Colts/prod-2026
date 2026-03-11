@@ -107,15 +107,15 @@ public class RobotContainer {
         );
 
         // LED state machine
-        neoStrip.setBreathing(edu.wpi.first.wpilibj.util.Color.kBlue, 0.5, 0.05);
+        neoStrip.setBreathing(Color.kOrangeRed, 0.5, 0.05);
         RobotModeTriggers.teleop().onTrue(
-            Commands.runOnce(() -> neoStrip.setBreathing(edu.wpi.first.wpilibj.util.Color.kAquamarine, 2.0, 0.05))
+            Commands.runOnce(() -> neoStrip.setBreathing(Color.kBlue, 2.0, 0.05))
         );
         RobotModeTriggers.autonomous().onTrue(
             Commands.runOnce(() -> neoStrip.setSolid(Color.kDarkMagenta))
         );
         RobotModeTriggers.disabled().onTrue(
-            Commands.runOnce(() -> neoStrip.setBreathing(edu.wpi.first.wpilibj.util.Color.kBlue, 0.5, 0.05))
+            Commands.runOnce(() -> neoStrip.setBreathing(Color.kOrangeRed, 0.5, 0.05))
                 .ignoringDisable(true)
         );
 
