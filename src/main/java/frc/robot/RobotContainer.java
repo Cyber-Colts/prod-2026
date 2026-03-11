@@ -32,15 +32,7 @@ import frc.robot.Constants.Driving;
 import frc.robot.commands.AutoRoutines;
 import frc.robot.commands.ManualDriveCommand;
 import frc.robot.commands.SubsystemCommands;
-import frc.robot.subsystems.Feeder;
-import frc.robot.subsystems.Floor;
-import frc.robot.subsystems.Hanger;
-import frc.robot.subsystems.Hood;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Limelight;
-import frc.robot.subsystems.NeoPixelStrip;
-import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.*;
 import frc.util.SwerveTelemetry;
 
 /**
@@ -61,6 +53,7 @@ public class RobotContainer {
     private final Hanger hanger = new Hanger();
     private final Limelight limelight = new Limelight("limelight");
     private final NeoPixelStrip neoStrip = new NeoPixelStrip(Ports.kNeoPixel, 100);
+    private final PlotLandmarks plotLandmarks = new PlotLandmarks();
     private SendableChooser<Command> autoChooser;
 
     private final CommandPS5Controller driver = new CommandPS5Controller(0);
