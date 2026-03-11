@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.Choreo.TrajectoryLogger;
@@ -33,11 +32,28 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.oldeLandmarks;
+import frc.robot.LimelightHelpers;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import org.littletonrobotics.junction.Logger;
 
 public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
+
+    // ---- Singleton ----
+    private static Swerve mySwerve;
+
+    public static Swerve get() {
+        if (mySwerve == null) {
+            mySwerve = new Swerve();
+        }
+        return mySwerve;
+    }
+
+    // ---- Limelight target tracking ----
+    public static double currentTargetID;
+
+    // ---- Sim ----
     private static final double kSimLoopPeriod = 0.004; // 4 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
@@ -50,24 +66,21 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private boolean m_hasAppliedOperatorPerspective = false;
 
     // ---- AdvantageKit / AdvantageScope telemetry state ----
-    // Last commanded module setpoints + chassis speeds so periodic() can log them
-    // under the exact keys the AdvantageScope Swerve Calibration layout expects.
     private SwerveModuleState[] m_lastSetpoints = new SwerveModuleState[] {
         new SwerveModuleState(), new SwerveModuleState(),
         new SwerveModuleState(), new SwerveModuleState()
     };
     private ChassisSpeeds m_lastSetpointSpeeds = new ChassisSpeeds();
 
-    // Kinematics built from module positions (telemetry-only – CTRE handles control internally)
+    // Kinematics built from module positions (telemetry-only)
     private static final SwerveDriveKinematics kTelemetryKinematics = new SwerveDriveKinematics(
         new Translation2d(TunerConstants.FrontLeft.LocationX,  TunerConstants.FrontLeft.LocationY),
         new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
         new Translation2d(TunerConstants.BackLeft.LocationX,   TunerConstants.BackLeft.LocationY),
         new Translation2d(TunerConstants.BackRight.LocationX,  TunerConstants.BackRight.LocationY)
     );
-    // -------------------------------------------------------
 
-    /* SysId routines */
+    // ---- SysId routines ----
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
@@ -108,45 +121,39 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         )
     );
 
+    // ---- Drive requests ----
     /** Swerve request to apply during field-centric path following */
     private final SwerveRequest.ApplyFieldSpeeds pathFieldSpeedsRequest = new SwerveRequest.ApplyFieldSpeeds();
     private final PIDController pathXController = new PIDController(10, 0, 0);
     private final PIDController pathYController = new PIDController(10, 0, 0);
     private final PIDController pathThetaController = new PIDController(7, 0, 0);
 
-    public Swerve() {
+    // ---- Constructor (private for singleton) ----
+    private Swerve() {
         super(
-            TunerConstants.DrivetrainConstants, 
+            TunerConstants.DrivetrainConstants,
             0,
             VecBuilder.fill(0.1, 0.1, 0.1),
             VecBuilder.fill(0.1, 0.1, 0.1),
-            TunerConstants.FrontLeft, 
-            TunerConstants.FrontRight, 
-            TunerConstants.BackLeft, 
+            TunerConstants.FrontLeft,
+            TunerConstants.FrontRight,
+            TunerConstants.BackLeft,
             TunerConstants.BackRight
         );
+
+        pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
+
         seedFieldCentric();
         if (Utils.isSimulation()) {
             startSimThread();
         }
     }
 
-    /**
-     * Runs the SysId Quasistatic test in the given direction for translation.
-     *
-     * @param direction Direction of the SysId Quasistatic test
-     * @return Command to run
-     */
+    // ---- SysId commands ----
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
         return m_sysIdRoutineTranslation.quasistatic(direction);
     }
 
-    /**
-     * Runs the SysId Dynamic test in the given direction for translation.
-     *
-     * @param direction Direction of the SysId Dynamic test
-     * @return Command to run
-     */
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
         return m_sysIdRoutineTranslation.dynamic(direction);
     }
@@ -167,6 +174,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         return m_sysIdRoutineRotation.dynamic(direction);
     }
 
+    // ---- Sim thread ----
     private void startSimThread() {
         m_lastSimTime = Utils.getCurrentTimeSeconds();
         m_simNotifier = new Notifier(() -> {
@@ -188,8 +196,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     }
 
     /**
-     * Creates a new auto factory for this drivetrain with the given
-     * trajectory logger.
+     * Creates a new auto factory for this drivetrain with the given trajectory logger.
      *
      * @param trajLogger Logger for the trajectory
      * @return AutoFactory for this drivetrain
@@ -208,7 +215,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     /**
      * Returns a command that applies the specified control request to this swerve drivetrain.
      *
-     * @param request Function returning the request to apply
+     * @param requestSupplier Function returning the request to apply
      * @return Command to run
      */
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
@@ -221,8 +228,6 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
      * @param sample Sample along the path to follow
      */
     public void followPath(SwerveSample sample) {
-        pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
-
         var pose = getState().Pose;
 
         var targetSpeeds = sample.getChassisSpeeds();
@@ -251,6 +256,9 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
     @Override
     public void periodic() {
+        // Limelight target ID
+        currentTargetID = LimelightHelpers.getFiducialID("limelight");
+
         /*
          * Periodically try to apply the operator perspective.
          */
@@ -271,39 +279,17 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         // ---- AdvantageKit / AdvantageScope telemetry ----
         SwerveDriveState state = getState();
 
-        // --- /RealOutputs/SwerveStates/Measured  (red in AdvantageScope) ---
         Logger.recordOutput("RealOutputs/SwerveStates/Measured", state.ModuleStates);
-
-        // --- /RealOutputs/SwerveStates/SetpointsOptimized  (cyan) ---
-        // ModuleTargets are the optimised (CTRE-side) setpoints after cosine scaling
         Logger.recordOutput("RealOutputs/SwerveStates/SetpointsOptimized", state.ModuleTargets);
-
-        // --- /RealOutputs/SwerveStates/Setpoints  (raw commanded, before optimisation) ---
         Logger.recordOutput("RealOutputs/SwerveStates/Setpoints", m_lastSetpoints);
-
-        // --- /RealOutputs/SwerveChassisSpeeds/Measured ---
         Logger.recordOutput("RealOutputs/SwerveChassisSpeeds/Measured", state.Speeds);
-
-        // --- /RealOutputs/SwerveChassisSpeeds/Setpoints ---
         Logger.recordOutput("RealOutputs/SwerveChassisSpeeds/Setpoints", m_lastSetpointSpeeds);
-
-        // --- /RealOutputs/Odometry/Robot ---
         Logger.recordOutput("RealOutputs/Odometry/Robot", state.Pose);
 
-        // --- Per-module raw signals (Turn Calibration, Drive Calibration,
-        //     Slip Current tabs in AdvantageScope) ---
-        // Keys exactly match the calibration JSON:
-        //   /Drive/Module{0-3}/TurnPosition          (radians)
-        //   /Drive/Module{0-3}/DrivePositionRad      (radians, wheel)
-        //   /Drive/Module{0-3}/DriveVelocityRadPerSec
-        //   /Drive/Module{0-3}/DriveCurrentAmps
         for (int i = 0; i < 4; i++) {
             var modState = state.ModuleStates[i];
-            // Turn position in radians – exact key the calibration chart reads
             Logger.recordOutput("Drive/Module" + i + "/TurnPosition",
                 modState.angle.getRadians());
-            // Drive position: integrate from velocity is not directly available via state,
-            // so we expose the raw encoder position through the module object
             var module = getModule(i);
             double drivePositionRad = Units.rotationsToRadians(
                 module.getDriveMotor().getPosition().getValueAsDouble()
@@ -322,15 +308,11 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             Logger.recordOutput("Drive/Module" + i + "/DriveAppliedVolts",
                 module.getDriveMotor().getMotorVoltage().getValueAsDouble());
         }
-        // -------------------------------------------------
     }
 
     /**
      * Call this whenever you send a new velocity setpoint to the drivetrain so that
      * AdvantageScope can overlay commanded vs. measured on the calibration tabs.
-     *
-     * @param setpoints   The four module setpoints (before CTRE optimization)
-     * @param speeds      The chassis-level commanded speeds
      */
     public void recordSetpointTelemetry(SwerveModuleState[] setpoints, ChassisSpeeds speeds) {
         m_lastSetpoints = setpoints;
@@ -348,53 +330,31 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     }
 
     /**
-     * Adds a vision measurement to the Kalman Filter. This will correct the odometry pose estimate
-     * while still accounting for measurement noise.
-     *
-     * @param visionRobotPoseMeters The pose of the robot as measured by the vision camera.
-     * @param timestampSeconds The timestamp of the vision measurement in seconds.
+     * Returns the direction from the robot to the hub landmark, relative to the operator forward direction.
      */
-    @Override
-    public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds) {
-        // LimelightHelpers already provides timestamps in seconds (wall/NT time),
-        // so pass them directly to the CTRE odometry API. Using Utils.fpgaToCurrentTime
-        // here caused a double-conversion and incorrect timing for vision updates.
-        super.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds);
+    public Rotation2d getAimDirection() {
+        Translation2d hubPosition = oldeLandmarks.hubPosition();
+        Translation2d robotPosition = getState().Pose.getTranslation();
+        return hubPosition.minus(robotPosition).getAngle()
+                .rotateBy(getOperatorForwardDirection());
     }
 
-    /**
-     * Adds a vision measurement to the Kalman Filter. This will correct the odometry pose estimate
-     * while still accounting for measurement noise.
-     * <p>
-     * Note that the vision measurement standard deviations passed into this method
-     * will continue to apply to future measurements until a subsequent call to
-     * {@link #setVisionMeasurementStdDevs(Matrix)} or this method.
-     *
-     * @param visionRobotPoseMeters The pose of the robot as measured by the vision camera.
-     * @param timestampSeconds The timestamp of the vision measurement in seconds.
-     * @param visionMeasurementStdDevs Standard deviations of the vision pose measurement
-     *     in the form [x, y, theta]ᵀ, with units in meters and radians.
-     */
+    @Override
+    public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds) {
+        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds));
+    }
+
     @Override
     public void addVisionMeasurement(
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs
     ) {
-        // See comment in single-arg overload: timestamps are already in seconds.
-        super.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
     }
 
-    /**
-     * Return the pose at a given timestamp, if the buffer is not empty.
-     *
-     * @param timestampSeconds The timestamp of the pose in seconds.
-     * @return The pose at the given timestamp (or Optional.empty() if the buffer is empty).
-     */
     @Override
     public Optional<Pose2d> samplePoseAt(double timestampSeconds) {
-        // The timestampSeconds here is in seconds (wall/NT time). Forward it directly
-        // to the underlying estimator's buffer lookup.
         return super.samplePoseAt(timestampSeconds);
     }
 }

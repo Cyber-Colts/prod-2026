@@ -41,7 +41,7 @@ import frc.util.SwerveTelemetry;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-    private final Swerve swerve = new Swerve();
+    private final Swerve swerve = Swerve.get();
     private final Intake intake = new Intake();
     private final Floor floor = new Floor();
     private final Feeder feeder = new Feeder();
@@ -68,9 +68,7 @@ public class RobotContainer {
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-            for (int port = 5800; port <= 5809; port++) {
-                PortForwarder.add(port, "172.29.0.1", port);
-            }
+        LimelightHelpers.setupPortForwardingUSB(0);
 
         configureBindings();
         AutoRoutines autoRoutines = new AutoRoutines(
@@ -93,7 +91,7 @@ public class RobotContainer {
      * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
      * predicate, or via the named factories in {@link
      * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-     * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
+     * {@link edu.wpi.first.wpilibj2.command.button.CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
      * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
      * joysticks}.
      */
