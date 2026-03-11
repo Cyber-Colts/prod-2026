@@ -8,6 +8,9 @@
 ### GitHup Copilot ###
 copilot-instructions.md
 
+###Build configurations###
+BuildConstants.java
+
 # Compiled Object files
 *.slo
 *.lo

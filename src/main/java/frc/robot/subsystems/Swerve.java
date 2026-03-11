@@ -356,7 +356,10 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
      */
     @Override
     public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds) {
-        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds));
+        // LimelightHelpers already provides timestamps in seconds (wall/NT time),
+        // so pass them directly to the CTRE odometry API. Using Utils.fpgaToCurrentTime
+        // here caused a double-conversion and incorrect timing for vision updates.
+        super.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds);
     }
 
     /**
@@ -378,7 +381,8 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs
     ) {
-        super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
+        // See comment in single-arg overload: timestamps are already in seconds.
+        super.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
     }
 
     /**
@@ -389,6 +393,8 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
      */
     @Override
     public Optional<Pose2d> samplePoseAt(double timestampSeconds) {
-        return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
+        // The timestampSeconds here is in seconds (wall/NT time). Forward it directly
+        // to the underlying estimator's buffer lookup.
+        return super.samplePoseAt(timestampSeconds);
     }
 }
