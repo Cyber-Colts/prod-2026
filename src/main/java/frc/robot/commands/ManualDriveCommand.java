@@ -51,7 +51,7 @@ public class ManualDriveCommand extends Command {
         .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
         .withSteerRequestType(SteerRequestType.MotionMagicExpo)
         .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
-        .withHeadingPID(0.25, 0, 0.5);
+        .withHeadingPID(5, 0, 0);
  //         .withHeadingPID(0.25, 0, 0);
 
     private State currentState = State.IDLING;

@@ -87,8 +87,11 @@ public class TunerConstants {
                 .withStatorCurrentLimitEnable(true)
         );
     private static final CANcoderConfiguration encoderInitialConfigs = new CANcoderConfiguration();
-    // Configs for the Pigeon 2; leave this null to skip applying Pigeon 2 configs
-    private static final Pigeon2Configuration pigeonConfigs = null;
+    // Configs for the Pigeon 2.
+    // If the Pigeon is mounted with the logo facing down (upside-down), roll = 180 corrects yaw sign.
+    // If yaw direction is still wrong after this, try roll = 0 (remove the config).
+    private static final Pigeon2Configuration pigeonConfigs = new Pigeon2Configuration()
+        .withMountPose(new com.ctre.phoenix6.configs.MountPoseConfigs());
 
     // CAN bus that the devices are located on;
     // All swerve devices must share the same CAN bus
@@ -102,12 +105,13 @@ public class TunerConstants {
     // This may need to be tuned to your individual robot
     private static final double kCoupleRatio = 4.909090909090909;
 
+    // Swerve X2i X3, 11T pinion drive ratio = 5.89 (confirmed)
     private static final double kDriveGearRatio = 5.8909090909090915;
     private static final double kSteerGearRatio = 12.1;
     private static final Distance kWheelRadius = Inches.of(2);
 
-    private static final boolean kInvertLeftSide = true;
-    private static final boolean kInvertRightSide = false;
+    private static final boolean kInvertLeftSide = false;
+    private static final boolean kInvertRightSide = true;
 
     private static final int kPigeonId = 14;
 

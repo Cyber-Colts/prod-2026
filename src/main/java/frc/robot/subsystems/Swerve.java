@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -338,6 +339,13 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
         // ---- AdvantageKit / AdvantageScope telemetry ----
         SwerveDriveState state = getState();
+
+        // Log raw Pigeon2 yaw directly so it can be compared to odometry heading in AdvantageScope.
+        // If these diverge, kCoupleRatio or gear ratios are still wrong.
+        Pigeon2 pigeon = getPigeon2();
+        Logger.recordOutput("Drive/Pigeon/RawYawDeg", pigeon.getYaw().getValueAsDouble());
+        Logger.recordOutput("Drive/Pigeon/RawYawRad", Math.toRadians(pigeon.getYaw().getValueAsDouble()));
+        Logger.recordOutput("Drive/OdometryHeadingDeg", state.Pose.getRotation().getDegrees());
 
         Logger.recordOutput("RealOutputs/SwerveStates/Measured", state.ModuleStates);
         Logger.recordOutput("RealOutputs/SwerveStates/SetpointsOptimized", state.ModuleTargets);

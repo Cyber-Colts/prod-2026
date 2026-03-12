@@ -59,8 +59,8 @@
     {"from":7, "to":"last", "data":{"type":"MaxAcceleration", "props":{"max":{"exp":"7 ft / s ^ 2", "val":2.1336}}}, "enabled":true},
     {"from":7, "to":8, "data":{"type":"MaxAngularVelocity", "props":{"max":{"exp":"120 deg / s", "val":2.0943951023931953}}}, "enabled":true},
     {"from":6, "to":7, "data":{"type":"MaxAngularVelocity", "props":{"max":{"exp":"5 deg / s", "val":0.08726646259971647}}}, "enabled":true},
-    {"from":0, "to":4, "data":{"type":"MaxAcceleration", "props":{"max":{"exp":"12 ft / s ^ 2", "val":3.6576}}}, "enabled":true},
-    {"from":4, "to":7, "data":{"type":"MaxAcceleration", "props":{"max":{"exp":"9 ft / s ^ 2", "val":2.7432000000000003}}}, "enabled":true}],
+    {"from":0, "to":4, "data":{"type":"MaxAcceleration", "props":{"max":{"exp":"5 ft / s ^ 2", "val":1.524}}}, "enabled":true},
+    {"from":0, "to":7, "data":{"type":"MaxAcceleration", "props":{"max":{"exp":"3 ft / s ^ 2", "val":0.9144}}}, "enabled":true}],
   "targetDt":{
    "exp":"0.05 s",
    "val":0.05
