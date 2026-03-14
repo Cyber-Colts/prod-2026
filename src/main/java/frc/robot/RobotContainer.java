@@ -147,7 +147,7 @@ public class RobotContainer {
         // LED state machine
         neoStrip.setBreathing(Color.kOrangeRed, 0.5, 0.05);
         RobotModeTriggers.teleop().onTrue(
-            Commands.runOnce(() -> neoStrip.setBreathing(Color.kBlue, 2.0, 0.05))
+            Commands.runOnce(neoStrip::setHalfBlue)
         );
         RobotModeTriggers.autonomous().onTrue(
             Commands.runOnce(() -> neoStrip.setSolid(Color.kDarkMagenta))
@@ -168,6 +168,7 @@ public class RobotContainer {
 
         driver.povUp().onTrue(hanger.positionCommand(Hanger.Position.HANGING));
         driver.povDown().onTrue(hanger.positionCommand(Hanger.Position.HUNG));
+        driver.povRight().whileTrue(feeder.spitCommand());
     }
 
     private void configureManualDriveBindings() {

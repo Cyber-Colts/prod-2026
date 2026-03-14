@@ -36,7 +36,6 @@ public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
         INTAKE(0.8);
-//        INTAKE(0.1);
 
         private final double percentOutput;
 
@@ -87,52 +86,52 @@ public class Intake extends SubsystemBase {
 
     private void configurePivotMotor() {
         final TalonFXConfiguration config = new TalonFXConfiguration()
-            .withMotorOutput(
-                new MotorOutputConfigs()
-                    .withInverted(InvertedValue.CounterClockwise_Positive)
-                    .withNeutralMode(NeutralModeValue.Brake)
-            )
-            .withCurrentLimits(
-                new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(120))
-                    .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(70))
-                    .withSupplyCurrentLimitEnable(true)
-            )
-            .withFeedback(
-                new FeedbackConfigs()
-                    .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor)
-                    .withSensorToMechanismRatio(kPivotReduction)
-            )
-            .withMotionMagic(
-                new MotionMagicConfigs()
-                    .withMotionMagicCruiseVelocity(kMaxPivotSpeed)
-                    .withMotionMagicAcceleration(kMaxPivotSpeed.per(Second))
-            )
-            .withSlot0(
-                new Slot0Configs()
-                    .withKP(300)
-                    .withKI(0)
-                    .withKD(0)
-                    .withKV(12.0 / kMaxPivotSpeed.in(RotationsPerSecond)) // 12 volts when requesting max RPS
-            );
+                .withMotorOutput(
+                        new MotorOutputConfigs()
+                                .withInverted(InvertedValue.CounterClockwise_Positive)
+                                .withNeutralMode(NeutralModeValue.Brake)
+                )
+                .withCurrentLimits(
+                        new CurrentLimitsConfigs()
+                                .withStatorCurrentLimit(Amps.of(120))
+                                .withStatorCurrentLimitEnable(true)
+                                .withSupplyCurrentLimit(Amps.of(70))
+                                .withSupplyCurrentLimitEnable(true)
+                )
+                .withFeedback(
+                        new FeedbackConfigs()
+                                .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor)
+                                .withSensorToMechanismRatio(kPivotReduction)
+                )
+                .withMotionMagic(
+                        new MotionMagicConfigs()
+                                .withMotionMagicCruiseVelocity(kMaxPivotSpeed)
+                                .withMotionMagicAcceleration(kMaxPivotSpeed.per(Second))
+                )
+                .withSlot0(
+                        new Slot0Configs()
+                                .withKP(300)
+                                .withKI(0)
+                                .withKD(0)
+                                .withKV(12.0 / kMaxPivotSpeed.in(RotationsPerSecond)) // 12 volts when requesting max RPS
+                );
         pivotMotor.getConfigurator().apply(config);
     }
 
     private void configureRollerMotor() {
         final TalonFXConfiguration config = new TalonFXConfiguration()
-            .withMotorOutput(
-                new MotorOutputConfigs()
-                    .withInverted(InvertedValue.Clockwise_Positive)
-                    .withNeutralMode(NeutralModeValue.Brake)
-            )
-            .withCurrentLimits(
-                new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(120))
-                    .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(70))
-                    .withSupplyCurrentLimitEnable(true)
-            );
+                .withMotorOutput(
+                        new MotorOutputConfigs()
+                                .withInverted(InvertedValue.Clockwise_Positive)
+                                .withNeutralMode(NeutralModeValue.Brake)
+                )
+                .withCurrentLimits(
+                        new CurrentLimitsConfigs()
+                                .withStatorCurrentLimit(Amps.of(120))
+                                .withStatorCurrentLimitEnable(true)
+                                .withSupplyCurrentLimit(Amps.of(70))
+                                .withSupplyCurrentLimitEnable(true)
+                );
         rollerMotor.getConfigurator().apply(config);
     }
 
@@ -144,64 +143,64 @@ public class Intake extends SubsystemBase {
 
     private void setPivotPercentOutput(double percentOutput) {
         pivotMotor.setControl(
-            pivotVoltageRequest
-                .withOutput(Volts.of(percentOutput * 12.0))
+                pivotVoltageRequest
+                        .withOutput(Volts.of(percentOutput * 12.0))
         );
     }
 
     public void set(Position position) {
         pivotMotor.setControl(
-            pivotMotionMagicRequest
-                .withPosition(position.angle())
+                pivotMotionMagicRequest
+                        .withPosition(position.angle())
         );
     }
 
     public void set(Speed speed) {
         rollerMotor.setControl(
-            rollerVoltageRequest
-                .withOutput(speed.voltage())
+                rollerVoltageRequest
+                        .withOutput(speed.voltage())
         );
     }
 
     public Command intakeCommand() {
         return startEnd(
-            () -> {
-                set(Position.INTAKE);
-                set(Speed.INTAKE);
-            },
-            () -> set(Speed.STOP)
+                () -> {
+                    set(Position.INTAKE);
+                    set(Speed.INTAKE);
+                },
+                () -> set(Speed.STOP)
         );
     }
 
     public Command agitateCommand() {
         return runOnce(() -> set(Speed.INTAKE))
-            .andThen(
-                Commands.sequence(
-                    runOnce(() -> set(Position.AGITATE)),
-                    Commands.waitUntil(this::isPositionWithinTolerance),
-                    runOnce(() -> set(Position.INTAKE)),
-                    Commands.waitUntil(this::isPositionWithinTolerance)
+                .andThen(
+                        Commands.sequence(
+                                        runOnce(() -> set(Position.AGITATE)),
+                                        Commands.waitUntil(this::isPositionWithinTolerance),
+                                        runOnce(() -> set(Position.INTAKE)),
+                                        Commands.waitUntil(this::isPositionWithinTolerance)
+                                )
+                                .repeatedly()
                 )
-                .repeatedly()
-            )
-            .handleInterrupt(() -> {
-                set(Position.INTAKE);
-                set(Speed.STOP);
-            });
+                .handleInterrupt(() -> {
+                    set(Position.INTAKE);
+                    set(Speed.STOP);
+                });
     }
 
     public Command homingCommand() {
         return Commands.sequence(
-            runOnce(() -> setPivotPercentOutput(0.1)),
-            Commands.waitUntil(() -> pivotMotor.getSupplyCurrent().getValue().in(Amps) > 6),
-            runOnce(() -> {
-                pivotMotor.setPosition(Position.HOMED.angle());
-                isHomed = true;
-                set(Position.STOWED);
-            })
-        )
-        .unless(() -> isHomed)
-        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
+                        runOnce(() -> setPivotPercentOutput(0.1)),
+                        Commands.waitUntil(() -> pivotMotor.getSupplyCurrent().getValue().in(Amps) > 6),
+                        runOnce(() -> {
+                            pivotMotor.setPosition(Position.HOMED.angle());
+                            isHomed = true;
+                            set(Position.STOWED);
+                        })
+                )
+                .unless(() -> isHomed)
+                .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
     }
 
     @Override
