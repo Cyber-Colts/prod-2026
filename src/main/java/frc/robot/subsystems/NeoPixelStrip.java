@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * on the RoboRIO (e.g., PWM 2) for the data line.
  */
 public class NeoPixelStrip extends SubsystemBase {
-    public enum Mode { OFF, SOLID, BREATHING, HALF_BLUE }
+    public enum Mode { OFF, SOLID, BREATHING, DUAL_BREATHING }
 
     private AddressableLED led;
     private AddressableLEDBuffer buffer;
@@ -23,6 +23,7 @@ public class NeoPixelStrip extends SubsystemBase {
 
     private Mode mode = Mode.OFF;
     private Color solidColor = new Color(0, 0, 0);
+    private Color secondaryColor = new Color(0, 0, 0);
 
     // Breathing state
     private double breathFrequencyHz = 0.5; // cycles per second
@@ -62,8 +63,12 @@ public class NeoPixelStrip extends SubsystemBase {
         }
     }
 
-    public void setHalfBlue() {
-        mode = Mode.HALF_BLUE;
+    public void setDualBreathing(Color c1, Color c2, double freqHz, double minBrightness) {
+        solidColor = c1;
+        secondaryColor = c2;
+        breathFrequencyHz = freqHz;
+        breathMin = Math.max(0.0, Math.min(1.0, minBrightness));
+        mode = Mode.DUAL_BREATHING;
     }
 
     /** Breathe a specific color at the given frequency and minimum brightness. */
@@ -115,15 +120,19 @@ public class NeoPixelStrip extends SubsystemBase {
         led.setData(buffer);
     }
 
-    private void updateBufferHalfBlue() {
+    private void updateBufferDualBreathing() {
         if (!enabled) {
             return;
         }
+        double t = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+        double phase = 2.0 * Math.PI * breathFrequencyHz * t;
+        double sine = 0.5 * (1.0 + Math.sin(phase)); // 0..1
+        double brightness = breathMin + (1.0 - breathMin) * sine; // breathMin..1.0
         for (int i = 0; i < length; i++) {
             if (i < length / 2) {
-                buffer.setLED(i, new Color(0.0, 0.0, 1.0)); // Blue
+                buffer.setLED(i, new Color(solidColor.red * brightness, solidColor.green * brightness, solidColor.blue * brightness));
             } else {
-                buffer.setLED(i, new Color(0.0, 0.0, 0.0)); // Off
+                buffer.setLED(i, new Color(secondaryColor.red * brightness, secondaryColor.green * brightness, secondaryColor.blue * brightness));
             }
         }
         led.setData(buffer);
@@ -141,8 +150,8 @@ public class NeoPixelStrip extends SubsystemBase {
             case BREATHING:
                 updateBufferBreathing();
                 break;
-            case HALF_BLUE:
-                updateBufferHalfBlue();
+            case DUAL_BREATHING:
+                updateBufferDualBreathing();
                 break;
         }
     }

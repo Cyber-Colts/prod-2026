@@ -147,7 +147,7 @@ public class RobotContainer {
         // LED state machine
         neoStrip.setBreathing(Color.kOrangeRed, 0.5, 0.05);
         RobotModeTriggers.teleop().onTrue(
-            Commands.runOnce(neoStrip::setHalfBlue)
+            Commands.runOnce(() -> neoStrip.setDualBreathing(Color.kBlue, Color.kOrange, 2.0, 0.05))
         );
         RobotModeTriggers.autonomous().onTrue(
             Commands.runOnce(() -> neoStrip.setSolid(Color.kDarkMagenta))
