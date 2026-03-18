@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Driving;
@@ -52,7 +53,11 @@ public class RobotContainer {
     private final Hood hood = new Hood();
     private final Hanger hanger = new Hanger();
     private final Limelight limelight = new Limelight("limelight");
-    private final NeoPixelStrip neoStrip = new NeoPixelStrip(Ports.kNeoPixel, 100);
+
+    //20 Left
+    //21 Right
+    //9 Intake
+    private final NeoPixelStrip neoStrip = new NeoPixelStrip(Ports.kNeoPixel, 50);
     private final PlotLandmarks plotLandmarks = new PlotLandmarks();
     private SendableChooser<Command> autoChooser;
 
@@ -169,6 +174,7 @@ public class RobotContainer {
         driver.povUp().onTrue(hanger.positionCommand(Hanger.Position.HANGING));
         driver.povDown().onTrue(hanger.positionCommand(Hanger.Position.HUNG));
         driver.povRight().whileTrue(feeder.spitCommand());
+
     }
 
     private void configureManualDriveBindings() {

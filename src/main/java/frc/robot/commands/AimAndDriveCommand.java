@@ -49,21 +49,21 @@ public class AimAndDriveCommand extends Command {
 
     public boolean isAimed() {
         final Rotation2d targetHeading = fieldCentricFacingAngleRequest.TargetDirection;
-        final Rotation2d currentHeadingInBlueAlliancePerspective = swerve.getState().Pose.getRotation();
+        final Rotation2d currentHeadingInBlueAlliancePerspective = swerve.getPose().getRotation();
         final Rotation2d currentHeadingInOperatorPerspective = currentHeadingInBlueAlliancePerspective.rotateBy(swerve.getOperatorForwardDirection());
         return GeometryUtil.isNear(targetHeading, currentHeadingInOperatorPerspective, kAimTolerance);
     }
 
     private Rotation2d getDirectionToHub() {
         final Translation2d hubPosition = Landmark.HUB.get().getTranslation();
-        final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
+        final Translation2d robotPosition = swerve.getPose().getTranslation();
         final Rotation2d hubDirectionInBlueAlliancePerspective = hubPosition.minus(robotPosition).getAngle();
         return hubDirectionInBlueAlliancePerspective.rotateBy(swerve.getOperatorForwardDirection());
     }
 
     private Rotation2d getDirectionToTower() {
         final Translation2d towerPos = Landmark.TOWER.get().getTranslation();
-        final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
+        final Translation2d robotPosition = swerve.getPose().getTranslation();
         final Rotation2d hubDirectionInBlueAlliancePerspective = towerPos.minus(robotPosition).getAngle();
         return hubDirectionInBlueAlliancePerspective.rotateBy(swerve.getOperatorForwardDirection());
     }

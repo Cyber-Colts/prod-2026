@@ -95,7 +95,7 @@ public class Intake extends SubsystemBase {
                         new CurrentLimitsConfigs()
                                 .withStatorCurrentLimit(Amps.of(120))
                                 .withStatorCurrentLimitEnable(true)
-                                .withSupplyCurrentLimit(Amps.of(70))
+                                .withSupplyCurrentLimit(Amps.of(80))
                                 .withSupplyCurrentLimitEnable(true)
                 )
                 .withFeedback(
@@ -173,7 +173,7 @@ public class Intake extends SubsystemBase {
     }
 
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.INTAKE))
+        return runOnce(() -> set(Speed.STOP))
                 .andThen(
                         Commands.sequence(
                                         runOnce(() -> set(Position.AGITATE)),

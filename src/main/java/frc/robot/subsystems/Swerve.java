@@ -77,17 +77,17 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
     // ---- AdvantageKit / AdvantageScope telemetry state ----
     private SwerveModuleState[] m_lastSetpoints = new SwerveModuleState[] {
-        new SwerveModuleState(), new SwerveModuleState(),
-        new SwerveModuleState(), new SwerveModuleState()
+            new SwerveModuleState(), new SwerveModuleState(),
+            new SwerveModuleState(), new SwerveModuleState()
     };
     private ChassisSpeeds m_lastSetpointSpeeds = new ChassisSpeeds();
 
     // Kinematics built from module positions (telemetry-only)
     private static final SwerveDriveKinematics kTelemetryKinematics = new SwerveDriveKinematics(
-        new Translation2d(TunerConstants.FrontLeft.LocationX,  TunerConstants.FrontLeft.LocationY),
-        new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
-        new Translation2d(TunerConstants.BackLeft.LocationX,   TunerConstants.BackLeft.LocationY),
-        new Translation2d(TunerConstants.BackRight.LocationX,  TunerConstants.BackRight.LocationY)
+            new Translation2d(TunerConstants.FrontLeft.LocationX,  TunerConstants.FrontLeft.LocationY),
+            new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+            new Translation2d(TunerConstants.BackLeft.LocationX,   TunerConstants.BackLeft.LocationY),
+            new Translation2d(TunerConstants.BackRight.LocationX,  TunerConstants.BackRight.LocationY)
     );
 
     // ---- PathPlanner robot config ----
@@ -95,24 +95,24 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private static final double ROBOT_MOI = 6;
     private static final double WHEEL_COF = 1.2;
     private static final RobotConfig PP_CONFIG = new RobotConfig(
-        ROBOT_MASS_KG,
-        ROBOT_MOI,
-        new ModuleConfig(
-            TunerConstants.FrontLeft.WheelRadius,
-            TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
-            WHEEL_COF,
-            DCMotor.getKrakenX60Foc(1)
-                .withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
-            TunerConstants.FrontLeft.SlipCurrent,
-            1),
-        getModuleTranslations());
+            ROBOT_MASS_KG,
+            ROBOT_MOI,
+            new ModuleConfig(
+                    TunerConstants.FrontLeft.WheelRadius,
+                    TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+                    WHEEL_COF,
+                    DCMotor.getKrakenX60Foc(1)
+                            .withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
+                    TunerConstants.FrontLeft.SlipCurrent,
+                    1),
+            getModuleTranslations());
 
     public static Translation2d[] getModuleTranslations() {
         return new Translation2d[] {
-            new Translation2d(TunerConstants.FrontLeft.LocationX,  TunerConstants.FrontLeft.LocationY),
-            new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
-            new Translation2d(TunerConstants.BackLeft.LocationX,   TunerConstants.BackLeft.LocationY),
-            new Translation2d(TunerConstants.BackRight.LocationX,  TunerConstants.BackRight.LocationY)
+                new Translation2d(TunerConstants.FrontLeft.LocationX,  TunerConstants.FrontLeft.LocationY),
+                new Translation2d(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+                new Translation2d(TunerConstants.BackLeft.LocationX,   TunerConstants.BackLeft.LocationY),
+                new Translation2d(TunerConstants.BackRight.LocationX,  TunerConstants.BackRight.LocationY)
         };
     }
 
@@ -122,39 +122,39 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null, Volts.of(4), null,
-            state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())
-        ),
-        new SysIdRoutine.Mechanism(
-            output -> setControl(m_translationCharacterization.withVolts(output)),
-            null, this
-        )
+            new SysIdRoutine.Config(
+                    null, Volts.of(4), null,
+                    state -> SignalLogger.writeString("SysIdTranslation_State", state.toString())
+            ),
+            new SysIdRoutine.Mechanism(
+                    output -> setControl(m_translationCharacterization.withVolts(output)),
+                    null, this
+            )
     );
 
     private final SysIdRoutine m_sysIdRoutineSteer = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            null, Volts.of(7), null,
-            state -> SignalLogger.writeString("SysIdSteer_State", state.toString())
-        ),
-        new SysIdRoutine.Mechanism(
-            volts -> setControl(m_steerCharacterization.withVolts(volts)),
-            null, this
-        )
+            new SysIdRoutine.Config(
+                    null, Volts.of(7), null,
+                    state -> SignalLogger.writeString("SysIdSteer_State", state.toString())
+            ),
+            new SysIdRoutine.Mechanism(
+                    volts -> setControl(m_steerCharacterization.withVolts(volts)),
+                    null, this
+            )
     );
 
     private final SysIdRoutine m_sysIdRoutineRotation = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            Volts.of(Math.PI / 6).per(Second), Volts.of(Math.PI), null,
-            state -> SignalLogger.writeString("SysIdRotation_State", state.toString())
-        ),
-        new SysIdRoutine.Mechanism(
-            output -> {
-                setControl(m_rotationCharacterization.withRotationalRate(output.in(Volts)));
-                SignalLogger.writeDouble("Rotational_Rate", output.in(Volts));
-            },
-            null, this
-        )
+            new SysIdRoutine.Config(
+                    Volts.of(Math.PI / 6).per(Second), Volts.of(Math.PI), null,
+                    state -> SignalLogger.writeString("SysIdRotation_State", state.toString())
+            ),
+            new SysIdRoutine.Mechanism(
+                    output -> {
+                        setControl(m_rotationCharacterization.withRotationalRate(output.in(Volts)));
+                        SignalLogger.writeDouble("Rotational_Rate", output.in(Volts));
+                    },
+                    null, this
+            )
     );
 
     // ---- Drive requests ----
@@ -168,36 +168,36 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     // ---- Constructor (private for singleton) ----
     private Swerve() {
         super(
-            TunerConstants.DrivetrainConstants,
-            0,
-            VecBuilder.fill(0.1, 0.1, 0.1),
-            VecBuilder.fill(0.1, 0.1, 0.1),
-            TunerConstants.FrontLeft,
-            TunerConstants.FrontRight,
-            TunerConstants.BackLeft,
-            TunerConstants.BackRight
+                TunerConstants.DrivetrainConstants,
+                0,
+                VecBuilder.fill(0.1, 0.1, 0.1),
+                VecBuilder.fill(0.1, 0.1, 0.1),
+                TunerConstants.FrontLeft,
+                TunerConstants.FrontRight,
+                TunerConstants.BackLeft,
+                TunerConstants.BackRight
         );
 
         pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
 
         AutoBuilder.configure(
-            () -> getState().Pose,
-            pose -> resetPose(pose),
-            () -> getChassisSpeeds(),
-            (speeds, feedforwards) -> drive(speeds),
-            new PPHolonomicDriveController(
-                new PIDConstants(1, 0.0, 0.00),
-                new PIDConstants(1, 0.0, 0.000)
-            ),
-            PP_CONFIG,
-            () -> {
-                var alliance = DriverStation.getAlliance();
-                if (alliance.isPresent()) {
-                    return alliance.get() == DriverStation.Alliance.Red;
-                }
-                return false;
-            },
-            this);
+                () -> getState().Pose,
+                pose -> resetPose(pose),
+                () -> getChassisSpeeds(),
+                (speeds, feedforwards) -> drive(speeds),
+                new PPHolonomicDriveController(
+                        new PIDConstants(1, 0.0, 0.00),
+                        new PIDConstants(1, 0.0, 0.000)
+                ),
+                PP_CONFIG,
+                () -> {
+                    var alliance = DriverStation.getAlliance();
+                    if (alliance.isPresent()) {
+                        return alliance.get() == DriverStation.Alliance.Red;
+                    }
+                    return false;
+                },
+                this);
 
         seedFieldCentric();
         if (Utils.isSimulation()) {
@@ -264,12 +264,12 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
      */
     public AutoFactory createAutoFactory(TrajectoryLogger<SwerveSample> trajLogger) {
         return new AutoFactory(
-            () -> getState().Pose,
-            this::resetPose,
-            this::followPath,
-            true,
-            this,
-            trajLogger
+                () -> getState().Pose,
+                this::resetPose,
+                this::followPath,
+                true,
+                this,
+                trajLogger
         );
     }
 
@@ -293,25 +293,25 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
         var targetSpeeds = sample.getChassisSpeeds();
         targetSpeeds.vxMetersPerSecond += pathXController.calculate(
-            pose.getX(), sample.x
+                pose.getX(), sample.x
         );
         targetSpeeds.vyMetersPerSecond += pathYController.calculate(
-            pose.getY(), sample.y
+                pose.getY(), sample.y
         );
         targetSpeeds.omegaRadiansPerSecond += pathThetaController.calculate(
-            pose.getRotation().getRadians(), sample.heading
+                pose.getRotation().getRadians(), sample.heading
         );
 
         // Record for AdvantageScope setpoint tabs
         recordSetpointTelemetry(
-            kTelemetryKinematics.toSwerveModuleStates(targetSpeeds),
-            targetSpeeds
+                kTelemetryKinematics.toSwerveModuleStates(targetSpeeds),
+                targetSpeeds
         );
 
         setControl(
-            pathFieldSpeedsRequest.withSpeeds(targetSpeeds)
-                .withWheelForceFeedforwardsX(sample.moduleForcesX())
-                .withWheelForceFeedforwardsY(sample.moduleForcesY())
+                pathFieldSpeedsRequest.withSpeeds(targetSpeeds)
+                        .withWheelForceFeedforwardsX(sample.moduleForcesX())
+                        .withWheelForceFeedforwardsY(sample.moduleForcesY())
         );
     }
 
@@ -326,9 +326,9 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
             DriverStation.getAlliance().ifPresent(allianceColor -> {
                 setOperatorPerspectiveForward(
-                    allianceColor == Alliance.Red
-                        ? kRedAlliancePerspectiveRotation
-                        : kBlueAlliancePerspectiveRotation
+                        allianceColor == Alliance.Red
+                                ? kRedAlliancePerspectiveRotation
+                                : kBlueAlliancePerspectiveRotation
                 );
                 if (!m_hasAppliedOperatorPerspective) {
                     seedFieldCentric();
@@ -357,24 +357,24 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         for (int i = 0; i < 4; i++) {
             var modState = state.ModuleStates[i];
             Logger.recordOutput("Drive/Module" + i + "/TurnPosition",
-                modState.angle.getRadians());
+                    modState.angle.getRadians());
             var module = getModule(i);
             double drivePositionRad = Units.rotationsToRadians(
-                module.getDriveMotor().getPosition().getValueAsDouble()
-                    / TunerConstants.FrontLeft.DriveMotorGearRatio);
+                    module.getDriveMotor().getPosition().getValueAsDouble()
+                            / TunerConstants.FrontLeft.DriveMotorGearRatio);
             Logger.recordOutput("Drive/Module" + i + "/DrivePositionRad", drivePositionRad);
             Logger.recordOutput("Drive/Module" + i + "/DriveVelocityRadPerSec",
-                Units.rotationsToRadians(
-                    module.getDriveMotor().getVelocity().getValueAsDouble()
-                        / TunerConstants.FrontLeft.DriveMotorGearRatio));
+                    Units.rotationsToRadians(
+                            module.getDriveMotor().getVelocity().getValueAsDouble()
+                                    / TunerConstants.FrontLeft.DriveMotorGearRatio));
             Logger.recordOutput("Drive/Module" + i + "/DriveCurrentAmps",
-                module.getDriveMotor().getStatorCurrent().getValueAsDouble());
+                    module.getDriveMotor().getStatorCurrent().getValueAsDouble());
             Logger.recordOutput("Drive/Module" + i + "/TurnCurrentAmps",
-                module.getSteerMotor().getStatorCurrent().getValueAsDouble());
+                    module.getSteerMotor().getStatorCurrent().getValueAsDouble());
             Logger.recordOutput("Drive/Module" + i + "/TurnAppliedVolts",
-                module.getSteerMotor().getMotorVoltage().getValueAsDouble());
+                    module.getSteerMotor().getMotorVoltage().getValueAsDouble());
             Logger.recordOutput("Drive/Module" + i + "/DriveAppliedVolts",
-                module.getDriveMotor().getMotorVoltage().getValueAsDouble());
+                    module.getDriveMotor().getMotorVoltage().getValueAsDouble());
         }
     }
 
@@ -389,7 +389,12 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
     /** Returns the current robot pose from the CTRE odometry estimator. */
     public Pose2d getPose() {
-        return getState().Pose;
+        Pose2d originalPose = getState().Pose;
+        return new Pose2d(
+                originalPose.getX(),
+                originalPose.getY(),
+                originalPose.getRotation()
+        );
     }
 
     /** Returns the current measured chassis speeds. */
@@ -414,9 +419,9 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
     @Override
     public void addVisionMeasurement(
-        Pose2d visionRobotPoseMeters,
-        double timestampSeconds,
-        Matrix<N3, N1> visionMeasurementStdDevs
+            Pose2d visionRobotPoseMeters,
+            double timestampSeconds,
+            Matrix<N3, N1> visionMeasurementStdDevs
     ) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
     }

@@ -12,6 +12,8 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
@@ -31,13 +33,35 @@ public class Limelight extends SubsystemBase {
         this.name = name;
         this.telemetryTable = NetworkTableInstance.getDefault().getTable("SmartDashboard/" + name);
         this.posePublisher = telemetryTable.getStructTopic("Estimated Robot Pose", Pose2d.struct).publish();
+        
+        // Configure the camera pose relative to the robot
+        // This is critical for correct pose estimates when the camera isn't at the robot's origin
+        LimelightHelpers.setCameraPose_RobotSpace(
+            name,
+            Constants.Limelight.CAMERA_FORWARD_OFFSET_INCHES,
+            Constants.Limelight.CAMERA_SIDE_OFFSET_INCHES,
+            Constants.Limelight.CAMERA_UP_OFFSET_INCHES,
+            Constants.Limelight.CAMERA_ROLL_DEGREES,
+            Constants.Limelight.CAMERA_PITCH_DEGREES,
+            Constants.Limelight.CAMERA_YAW_DEGREES
+        );
     }
 
     public Optional<Measurement> getMeasurement(Pose2d currentRobotPose) {
         LimelightHelpers.SetRobotOrientation(name, currentRobotPose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
 
-        final PoseEstimate poseEstimate_MegaTag1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
-        final PoseEstimate poseEstimate_MegaTag2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(name);
+        // Get MegaTag estimates for the appropriate alliance
+        var alliance = DriverStation.getAlliance();
+        final PoseEstimate poseEstimate_MegaTag1;
+        final PoseEstimate poseEstimate_MegaTag2;
+        
+        if (alliance.isPresent() && alliance.get() == Alliance.Red) {
+            poseEstimate_MegaTag1 = LimelightHelpers.getBotPoseEstimate_wpiRed(name);
+            poseEstimate_MegaTag2 = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(name);
+        } else {
+            poseEstimate_MegaTag1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
+            poseEstimate_MegaTag2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(name);
+        }
         //Unhandled exception: java.lang.NullPointerException: Cannot read field "tagCount" because "poseEstimate_MegaTag1" is null
         if ( poseEstimate_MegaTag1 == null
                 || poseEstimate_MegaTag2 == null
@@ -57,7 +81,9 @@ public class Limelight extends SubsystemBase {
         double error1 = pose1.getTranslation().getDistance(currentRobotPose.getTranslation());
         double error2 = pose2.getTranslation().getDistance(currentRobotPose.getTranslation());
 
-        Pose2d selectedPose = error1 < error2 ? pose1 : pose2;
+        // Prefer MegaTag2 (more stable) unless MegaTag1 is significantly better
+        // Only switch to MegaTag1 if it's more than 0.5m closer
+        Pose2d selectedPose = (error1 < (error2 - 0.5)) ? pose1 : pose2;
 
         // poseEstimate_MegaTag2.pose = new Pose2d(
         //     poseEstimate_MegaTag2.pose.getTranslation(),

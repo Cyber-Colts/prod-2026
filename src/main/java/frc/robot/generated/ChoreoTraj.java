@@ -1,4 +1,4 @@
-
+// spotless:off
 package frc.robot.generated;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -6,10 +6,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import java.util.Map;
 import java.util.OptionalInt;
 
-// If these imports cause errors because you're not using ChoreoLib,
-// turn off "Include ChoreoLib-specific Helpers" in Choreo's codegen settings.
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+// If the 2 imports above cause errors because you're not using ChoreoLib,
+// turn off "Include ChoreoLib-specific Helpers" in Choreo's codegen settings.
 
 /**
  * A class containing the name, start pose, end pose, and total time of every Choreo trajectory.
@@ -24,52 +24,179 @@ public record ChoreoTraj(
     Pose2d initialPoseBlue,
     Pose2d endPoseBlue
 ) {
+    public static final ChoreoTraj DepotToOutpost = new ChoreoTraj(
+        "DepotToOutpost",
+        OptionalInt.empty(),
+        8.54574,
+        new Pose2d(0.74091, 6.34703, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(2.03765, 1.26392, Rotation2d.fromRadians(-2.89661))
+    );
+    public static final ChoreoTraj DepotTowerPaths = new ChoreoTraj(
+        "DepotTowerPaths",
+        OptionalInt.empty(),
+        11.04805,
+        new Pose2d(3.48508, 5.96665, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.88887, 3.82854, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj DepotTowerPaths$0 = new ChoreoTraj(
+        "DepotTowerPaths",
+        OptionalInt.of(0),
+        3.74121,
+        new Pose2d(3.48508, 5.96665, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(0.78166, 5.51834, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj DepotTowerPaths$1 = new ChoreoTraj(
+        "DepotTowerPaths",
+        OptionalInt.of(1),
+        3.34942,
+        new Pose2d(0.78166, 5.51834, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(0.74091, 6.34703, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj DepotTowerPaths$2 = new ChoreoTraj(
+        "DepotTowerPaths",
+        OptionalInt.of(2),
+        1.6033599999999995,
+        new Pose2d(0.74091, 6.34703, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.54242, 5.58626, Rotation2d.fromRadians(-0.7854))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj DepotTowerPaths$3 = new ChoreoTraj(
+        "DepotTowerPaths",
+        OptionalInt.of(3),
+        2.3540600000000005,
+        new Pose2d(1.54242, 5.58626, Rotation2d.fromRadians(-0.7854)),
+        new Pose2d(1.88887, 3.82854, Rotation2d.fromRadians(3.14159))
+    );
     public static final ChoreoTraj OutpostAndDepotTrajectory = new ChoreoTraj(
-	    "OutpostAndDepotTrajectory",
-	    OptionalInt.empty(),
-	    11.3563,
-	    new Pose2d(3.598, 0.64, Rotation2d.fromRadians(3.142)),
-	    new Pose2d(0.941, 3.564, Rotation2d.fromRadians(3.142))
-	);
-	public static final ChoreoTraj OutpostAndDepotTrajectory$0 = new ChoreoTraj(
-	    "OutpostAndDepotTrajectory",
-	    OptionalInt.of(0),
-	    1.81742,
-	    new Pose2d(3.598, 0.64, Rotation2d.fromRadians(3.142)),
-	    new Pose2d(0.581, 0.669, Rotation2d.fromRadians(3.142))
-	);
-	public static final ChoreoTraj OutpostAndDepotTrajectory$1 = new ChoreoTraj(
-	    "OutpostAndDepotTrajectory",
-	    OptionalInt.of(1),
-	    3.40099,
-	    new Pose2d(0.581, 0.669, Rotation2d.fromRadians(3.142)),
-	    new Pose2d(0.668, 5.964, Rotation2d.fromRadians(3.142))
-	);
-	public static final ChoreoTraj OutpostAndDepotTrajectory$2 = new ChoreoTraj(
-	    "OutpostAndDepotTrajectory",
-	    OptionalInt.of(2),
-	    2.5827799999999996,
-	    new Pose2d(0.668, 5.964, Rotation2d.fromRadians(3.142)),
-	    new Pose2d(2.498, 4.035, Rotation2d.fromRadians(0))
-	);
-	public static final ChoreoTraj OutpostAndDepotTrajectory$3 = new ChoreoTraj(
-	    "OutpostAndDepotTrajectory",
-	    OptionalInt.of(3),
-	    3.555109999999999,
-	    new Pose2d(2.498, 4.035, Rotation2d.fromRadians(0)),
-	    new Pose2d(0.941, 3.564, Rotation2d.fromRadians(3.142))
-	);
+        "OutpostAndDepotTrajectory",
+        OptionalInt.empty(),
+        11.3563,
+        new Pose2d(3.59816, 0.63985, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(0.94136, 3.56436, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostAndDepotTrajectory$0 = new ChoreoTraj(
+        "OutpostAndDepotTrajectory",
+        OptionalInt.of(0),
+        1.81742,
+        new Pose2d(3.59816, 0.63985, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(0.58146, 0.6689, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostAndDepotTrajectory$1 = new ChoreoTraj(
+        "OutpostAndDepotTrajectory",
+        OptionalInt.of(1),
+        3.40099,
+        new Pose2d(0.58146, 0.6689, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(0.66833, 5.96377, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostAndDepotTrajectory$2 = new ChoreoTraj(
+        "OutpostAndDepotTrajectory",
+        OptionalInt.of(2),
+        2.5827799999999996,
+        new Pose2d(0.66833, 5.96377, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(2.49839, 4.03528, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostAndDepotTrajectory$3 = new ChoreoTraj(
+        "OutpostAndDepotTrajectory",
+        OptionalInt.of(3),
+        3.555109999999999,
+        new Pose2d(2.49839, 4.03528, Rotation2d.fromRadians(0)),
+        new Pose2d(0.94136, 3.56436, Rotation2d.fromRadians(3.14159))
+    );
+    public static final ChoreoTraj OutpostTowerPaths = new ChoreoTraj(
+        "OutpostTowerPaths",
+        OptionalInt.empty(),
+        16.71544,
+        new Pose2d(3.5, 0.7, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.86844, 3.74057, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostTowerPaths$0 = new ChoreoTraj(
+        "OutpostTowerPaths",
+        OptionalInt.of(0),
+        1.0003,
+        new Pose2d(3.5, 0.7, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(3, 0.7, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostTowerPaths$1 = new ChoreoTraj(
+        "OutpostTowerPaths",
+        OptionalInt.of(1),
+        2.74834,
+        new Pose2d(3, 0.7, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(0.75425, 0.67139, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostTowerPaths$2 = new ChoreoTraj(
+        "OutpostTowerPaths",
+        OptionalInt.of(2),
+        0.7165900000000001,
+        new Pose2d(0.75425, 0.67139, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.01143, 0.66599, Rotation2d.fromRadians(-3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostTowerPaths$3 = new ChoreoTraj(
+        "OutpostTowerPaths",
+        OptionalInt.of(3),
+        2.38044,
+        new Pose2d(1.01143, 0.66599, Rotation2d.fromRadians(-3.14159)),
+        new Pose2d(1.4634, 1.53965, Rotation2d.fromRadians(0.7854))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostTowerPaths$4 = new ChoreoTraj(
+        "OutpostTowerPaths",
+        OptionalInt.of(4),
+        2.39935,
+        new Pose2d(1.4634, 1.53965, Rotation2d.fromRadians(0.7854)),
+        new Pose2d(0.75425, 0.67139, Rotation2d.fromRadians(3.14159))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostTowerPaths$5 = new ChoreoTraj(
+        "OutpostTowerPaths",
+        OptionalInt.of(5),
+        4.25886,
+        new Pose2d(0.75425, 0.67139, Rotation2d.fromRadians(3.14159)),
+        new Pose2d(1.86844, 3.74057, Rotation2d.fromRadians(0))
+    );
+    /** ERROR: Can only use letters, 0-9, and _. Can't use $. Rename it in the Choreo app to fix this error. */
+    public static final ChoreoTraj OutpostTowerPaths$6 = new ChoreoTraj(
+        "OutpostTowerPaths",
+        OptionalInt.of(6),
+        3.2115600000000004,
+        new Pose2d(1.86844, 3.74057, Rotation2d.fromRadians(0)),
+        new Pose2d(1.86844, 3.74057, Rotation2d.fromRadians(3.14159))
+    );
 
     /**
      * A map between trajectory names and their corresponding data.
      * This allows for trajectory data to be looked up with strings during runtime.
      */
     public static final Map<String, ChoreoTraj> ALL_TRAJECTORIES = Map.ofEntries(
-    	Map.entry("OutpostAndDepotTrajectory", OutpostAndDepotTrajectory),
-		Map.entry("OutpostAndDepotTrajectory$0", OutpostAndDepotTrajectory$0),
-		Map.entry("OutpostAndDepotTrajectory$1", OutpostAndDepotTrajectory$1),
-		Map.entry("OutpostAndDepotTrajectory$2", OutpostAndDepotTrajectory$2),
-		Map.entry("OutpostAndDepotTrajectory$3", OutpostAndDepotTrajectory$3)
+        Map.entry("DepotToOutpost", DepotToOutpost),
+        Map.entry("DepotTowerPaths", DepotTowerPaths),
+        Map.entry("DepotTowerPaths$0", DepotTowerPaths$0),
+        Map.entry("DepotTowerPaths$1", DepotTowerPaths$1),
+        Map.entry("DepotTowerPaths$2", DepotTowerPaths$2),
+        Map.entry("DepotTowerPaths$3", DepotTowerPaths$3),
+        Map.entry("OutpostAndDepotTrajectory", OutpostAndDepotTrajectory),
+        Map.entry("OutpostAndDepotTrajectory$0", OutpostAndDepotTrajectory$0),
+        Map.entry("OutpostAndDepotTrajectory$1", OutpostAndDepotTrajectory$1),
+        Map.entry("OutpostAndDepotTrajectory$2", OutpostAndDepotTrajectory$2),
+        Map.entry("OutpostAndDepotTrajectory$3", OutpostAndDepotTrajectory$3),
+        Map.entry("OutpostTowerPaths", OutpostTowerPaths),
+        Map.entry("OutpostTowerPaths$0", OutpostTowerPaths$0),
+        Map.entry("OutpostTowerPaths$1", OutpostTowerPaths$1),
+        Map.entry("OutpostTowerPaths$2", OutpostTowerPaths$2),
+        Map.entry("OutpostTowerPaths$3", OutpostTowerPaths$3),
+        Map.entry("OutpostTowerPaths$4", OutpostTowerPaths$4),
+        Map.entry("OutpostTowerPaths$5", OutpostTowerPaths$5),
+        Map.entry("OutpostTowerPaths$6", OutpostTowerPaths$6)
     );
 
     /**
@@ -96,3 +223,4 @@ public record ChoreoTraj(
         return routine.trajectory(this.name);
     }
 }
+// spotless:on
