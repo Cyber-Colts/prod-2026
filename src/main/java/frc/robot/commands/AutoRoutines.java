@@ -6,8 +6,8 @@ package frc.robot.commands;
 
 import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$0;
 import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$1;
-import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$2;
-import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$3;
+//import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$2;
+//import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$3;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
@@ -67,6 +67,7 @@ public final class AutoRoutines {
 
     public void configure() {
         autoChooser.addRoutine("Outpost and Depot", this::outpostAndDepotRoutine);
+
         SmartDashboard.putData("Auto Chooser", autoChooser);
         RobotModeTriggers.autonomous().whileTrue(autoChooser.selectedCommandScheduler());
     }
@@ -75,8 +76,8 @@ public final class AutoRoutines {
         final AutoRoutine routine = autoFactory.newRoutine("Outpost and Depot");
         final AutoTrajectory startToOutpost = OutpostAndDepotTrajectory$0.asAutoTraj(routine);
         final AutoTrajectory outpostToDepot = OutpostAndDepotTrajectory$1.asAutoTraj(routine);
-        final AutoTrajectory depotToShootingPose = OutpostAndDepotTrajectory$2.asAutoTraj(routine);
-        final AutoTrajectory shootingPoseToTower = OutpostAndDepotTrajectory$3.asAutoTraj(routine);
+        //final AutoTrajectory depotToShootingPose = OutpostAndDepotTrajectory$2.asAutoTraj(routine);
+        //final AutoTrajectory shootingPoseToTower = OutpostAndDepotTrajectory$3.asAutoTraj(routine);
 
         routine.active().onTrue(
             Commands.sequence(
@@ -91,30 +92,39 @@ public final class AutoRoutines {
                 intake.runOnce(() -> intake.set(Intake.Position.INTAKE))
             )
         );
-
+        //intake.intakeCommand();
+        startToOutpost.atTimeBeforeEnd(2).onTrue(intake.intakeGetOut());
         startToOutpost.doneDelayed(1).onTrue(outpostToDepot.cmd());
 
-        outpostToDepot.atTimeBeforeEnd(1).onTrue(intake.intakeCommand());
-        outpostToDepot.doneDelayed(0.1).onTrue(depotToShootingPose.cmd());
-
-        depotToShootingPose.active().whileTrue(limelight.idle());
-        depotToShootingPose.atTime(0.5).onTrue(
-            Commands.parallel(
-                shooter.spinUpCommand(2600),
-                hood.positionCommand(0.32)
-            )
+        //outpostToDepot.atTimeBeforeEnd(1).onTrue(intake.intakeCommand());
+        outpostToDepot.atTimeBeforeEnd(1).onTrue(Commands.parallel(
+                        shooter.spinUpCommand(2600),
+                        hood.positionCommand(0.32)
+                    ));
+        outpostToDepot.doneDelayed(0.5).onTrue(
+                    Commands.sequence(
+                        subsystemCommands.shootManually()
+                            .withTimeout(5)
+                    )
         );
-        depotToShootingPose.done().onTrue(
-            Commands.sequence(
-                subsystemCommands.aimAndShoot()
-                    .withTimeout(5),
-                shootingPoseToTower.cmd()
-            )
-        );
+        //depotToShootingPose.active().whileTrue(limelight.idle());
+        //depotToShootingPose.atTime(0.5).onTrue(
+        //    Commands.parallel(
+        //        shooter.spinUpCommand(2600),
+        //        hood.positionCommand(0.32)
+        //    )
+        //);
+        //depotToShootingPose.done().onTrue(
+        //    Commands.sequence(
+        //        subsystemCommands.aimAndShoot()
+        //            .withTimeout(5),
+        //        shootingPoseToTower.cmd()
+        //    )
+        //);
 
-        shootingPoseToTower.active().whileTrue(limelight.idle());
-        shootingPoseToTower.active().onTrue(hanger.positionCommand(Hanger.Position.HANGING));
-        shootingPoseToTower.done().onTrue(hanger.positionCommand(Hanger.Position.HUNG));
+        //shootingPoseToTower.active().whileTrue(limelight.idle());
+        //shootingPoseToTower.active().onTrue(hanger.positionCommand(Hanger.Position.HANGING));
+        //shootingPoseToTower.done().onTrue(hanger.positionCommand(Hanger.Position.HUNG));
 
         return routine;
     }

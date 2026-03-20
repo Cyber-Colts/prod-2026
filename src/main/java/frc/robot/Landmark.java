@@ -26,19 +26,17 @@ public enum Landmark {
     DEPOT(new Pose2d(Inches.of(0.32), Inches.of(234.32), Rotation2d.fromDegrees(0))),
     TOWER(new Pose2d(Inches.of(0.32), Inches.of(147.47), Rotation2d.fromDegrees(0))),
 
-    /*
     HUB(new Pose2d(Inches.of(182.105), Inches.of(158.845), Rotation2d.fromDegrees(0))),
-    RIGHT_BUMP(new Pose2d(Inches.of(182.105), Inches.of(98.845), Rotation2d.fromDegrees(270))),
-    LEFT_BUMP(new Pose2d(Inches.of(182.105), Inches.of(218.845), Rotation2d.fromDegrees(270))),
-    RIGHT_TRENCH(new Pose2d(Inches.of(182.105), Inches.of(25.375), Rotation2d.fromDegrees(270))),
-    LEFT_TRENCH(new Pose2d(Inches.of(182.105), Inches.of(292.815), Rotation2d.fromDegrees(270))),
-    */
+    RIGHT_BUMP(new Pose2d(Inches.of(182.105), Inches.of(98.845), Rotation2d.fromDegrees(0))),
+    LEFT_BUMP(new Pose2d(Inches.of(182.105), Inches.of(218.845), Rotation2d.fromDegrees(0))),
+    RIGHT_TRENCH(new Pose2d(Inches.of(182.105), Inches.of(25.375), Rotation2d.fromDegrees(0))),
+    LEFT_TRENCH(new Pose2d(Inches.of(182.105), Inches.of(292.815), Rotation2d.fromDegrees(0))),
 
-    HUB(new Pose2d(Inches.of(182.105), Inches.of(123.845), Rotation2d.fromDegrees(270))),
-    RIGHT_BUMP(new Pose2d(Inches.of(182.105), Inches.of(63.845), Rotation2d.fromDegrees(270))),
-    LEFT_BUMP(new Pose2d(Inches.of(182.105), Inches.of(183.845), Rotation2d.fromDegrees(270))),
-    RIGHT_TRENCH(new Pose2d(Inches.of(182.105), Inches.of(10.375), Rotation2d.fromDegrees(270))),
-    LEFT_TRENCH(new Pose2d(Inches.of(182.105), Inches.of(257.815), Rotation2d.fromDegrees(270))),
+    //HUB(new Pose2d(Inches.of(182.105), Inches.of(123.845), Rotation2d.fromDegrees(0))),
+    //RIGHT_BUMP(new Pose2d(Inches.of(182.105), Inches.of(63.845), Rotation2d.fromDegrees(0))),
+    //LEFT_BUMP(new Pose2d(Inches.of(182.105), Inches.of(183.845), Rotation2d.fromDegrees(0))),
+    //RIGHT_TRENCH(new Pose2d(Inches.of(182.105), Inches.of(10.375), Rotation2d.fromDegrees(0))),
+    //LEFT_TRENCH(new Pose2d(Inches.of(182.105), Inches.of(257.815), Rotation2d.fromDegrees(0))),
 
     // The robot's bumper is expected to overlap since the line's thickness will extend it a little towards the alliance side
     RIGHT_START(new Pose2d(Inches.of(158.34 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5), Inches.of(25.375), Rotation2d.fromDegrees(0))),

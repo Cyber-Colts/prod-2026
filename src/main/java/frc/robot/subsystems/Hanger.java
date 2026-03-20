@@ -115,7 +115,7 @@ public class Hanger extends SubsystemBase {
 
     public Command homingCommand() {
         return Commands.sequence(
-            runOnce(() -> setPercentOutput(-0.10)),
+            runOnce(() -> setPercentOutput(-0.25)),
             Commands.waitUntil(() -> motor.getSupplyCurrent().getValue().in(Amps) > 0.4),
             runOnce(() -> {
                 motor.setPosition(Position.HOMED.motorAngle());

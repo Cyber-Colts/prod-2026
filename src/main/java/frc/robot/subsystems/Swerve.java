@@ -42,6 +42,9 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.oldeLandmarks;
 import frc.robot.LimelightHelpers;
 import frc.robot.generated.TunerConstants;
@@ -200,6 +203,52 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
                 this);
 
         seedFieldCentric();
+        
+        // ---- SmartDashboard Swerve Widget ----
+        SmartDashboard.putData("Swerve Drive", new Sendable() {
+            @Override
+            public void initSendable(SendableBuilder builder) {
+                builder.setSmartDashboardType("SwerveDrive");
+
+                // Front Left Module (Index 0)
+                builder.addDoubleProperty("Front Left Angle",
+                        () -> getState().ModuleStates[0].angle.getRadians(),
+                        null);
+                builder.addDoubleProperty("Front Left Velocity",
+                        () -> getState().ModuleStates[0].speedMetersPerSecond,
+                        null);
+
+                // Front Right Module (Index 1)
+                builder.addDoubleProperty("Front Right Angle",
+                        () -> getState().ModuleStates[1].angle.getRadians(),
+                        null);
+                builder.addDoubleProperty("Front Right Velocity",
+                        () -> getState().ModuleStates[1].speedMetersPerSecond,
+                        null);
+
+                // Back Left Module (Index 2)
+                builder.addDoubleProperty("Back Left Angle",
+                        () -> getState().ModuleStates[2].angle.getRadians(),
+                        null);
+                builder.addDoubleProperty("Back Left Velocity",
+                        () -> getState().ModuleStates[2].speedMetersPerSecond,
+                        null);
+
+                // Back Right Module (Index 3)
+                builder.addDoubleProperty("Back Right Angle",
+                        () -> getState().ModuleStates[3].angle.getRadians(),
+                        null);
+                builder.addDoubleProperty("Back Right Velocity",
+                        () -> getState().ModuleStates[3].speedMetersPerSecond,
+                        null);
+
+                // Robot Angle
+                builder.addDoubleProperty("Robot Angle",
+                        () -> getState().Pose.getRotation().getRadians(),
+                        null);
+            }
+        });
+        
         if (Utils.isSimulation()) {
             startSimThread();
         }

@@ -14,6 +14,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -35,23 +36,23 @@ import frc.robot.Ports;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(0.8);
+        INTAKE(5000);
 
-        private final double percentOutput;
+        private final double rpm;
 
-        private Speed(double percentOutput) {
-            this.percentOutput = percentOutput;
+        private Speed(double rpm) {
+            this.rpm = rpm;
         }
 
-        public Voltage voltage() {
-            return Volts.of(percentOutput * 12.0);
+        public AngularVelocity angularVelocity() {
+            return RPM.of(rpm);
         }
     }
 
     public enum Position {
         HOMED(110),
         STOWED(100),
-        INTAKE(-4),
+        INTAKE(-4.5),
         AGITATE(20);
 
         private final double degrees;
@@ -72,6 +73,7 @@ public class Intake extends SubsystemBase {
     private final TalonFX pivotMotor, rollerMotor;
     private final VoltageOut pivotVoltageRequest = new VoltageOut(0);
     private final MotionMagicVoltage pivotMotionMagicRequest = new MotionMagicVoltage(0).withSlot(0);
+    private final VelocityVoltage rollerVelocityRequest = new VelocityVoltage(0).withSlot(0);
     private final VoltageOut rollerVoltageRequest = new VoltageOut(0);
 
     private boolean isHomed = false;
@@ -95,7 +97,7 @@ public class Intake extends SubsystemBase {
                         new CurrentLimitsConfigs()
                                 .withStatorCurrentLimit(Amps.of(120))
                                 .withStatorCurrentLimitEnable(true)
-                                .withSupplyCurrentLimit(Amps.of(80))
+                                .withSupplyCurrentLimit(Amps.of(70))
                                 .withSupplyCurrentLimitEnable(true)
                 )
                 .withFeedback(
@@ -129,8 +131,14 @@ public class Intake extends SubsystemBase {
                         new CurrentLimitsConfigs()
                                 .withStatorCurrentLimit(Amps.of(120))
                                 .withStatorCurrentLimitEnable(true)
-                                .withSupplyCurrentLimit(Amps.of(70))
+                                .withSupplyCurrentLimit(Amps.of(80))
                                 .withSupplyCurrentLimitEnable(true)
+                ).withSlot0(
+                        new Slot0Configs()
+                                .withKP(1)
+                                .withKI(0)
+                                .withKD(0)
+                                .withKV(12.0 / KrakenX60.kFreeSpeed.in(RotationsPerSecond)) // 12 volts when requesting max RPS
                 );
         rollerMotor.getConfigurator().apply(config);
     }
@@ -157,8 +165,15 @@ public class Intake extends SubsystemBase {
 
     public void set(Speed speed) {
         rollerMotor.setControl(
+                rollerVelocityRequest
+                        .withVelocity(speed.angularVelocity())
+        );
+    }
+
+    public void setRollerPercentOutput(double percentOutput) {
+        rollerMotor.setControl(
                 rollerVoltageRequest
-                        .withOutput(speed.voltage())
+                        .withOutput(Volts.of(percentOutput * 12.0))
         );
     }
 
@@ -168,7 +183,16 @@ public class Intake extends SubsystemBase {
                     set(Position.INTAKE);
                     set(Speed.INTAKE);
                 },
-                () -> set(Speed.STOP)
+                () -> setRollerPercentOutput(0)
+        );
+    }
+
+    public Command intakeGetOut() {
+        return startEnd(
+                () -> {
+                    set(Position.INTAKE);
+                },
+                () -> set(Position.INTAKE)
         );
     }
 
