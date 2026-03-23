@@ -64,17 +64,17 @@ public class RobotContainer {
     private final CommandPS5Controller driver = new CommandPS5Controller(0);
 
     private final SubsystemCommands subsystemCommands = new SubsystemCommands(
-        swerve,
-        intake,
-        floor,
-        feeder,
-        shooter,
-        hood,
-        hanger,
-        () -> -driver.getLeftY(),
-        () -> -driver.getLeftX()
+            swerve,
+            intake,
+            floor,
+            feeder,
+            shooter,
+            hood,
+            hanger,
+            () -> -driver.getLeftY(),
+            () -> -driver.getLeftX()
     );
-    
+
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
         LimelightHelpers.setupPortForwardingUSB(0);
@@ -104,33 +104,33 @@ public class RobotContainer {
 
     private void registerNamedCommands() {
         NamedCommands.registerCommand("Start",
-            AutoBuilder.pathfindToPose(Landmark.RIGHT_START.get(new Transform2d(Inches.of(0), Inches.of(0), Rotation2d.k180deg)), constraints, 0));
+                AutoBuilder.pathfindToPose(Landmark.RIGHT_START.get(new Transform2d(Inches.of(0), Inches.of(0), Rotation2d.k180deg)), constraints, 0));
 
         NamedCommands.registerCommand("Tower",
-            AutoBuilder.pathfindToPose(Landmark.TOWER.get(new Transform2d(Inches.of(Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 + 5 + 36), Inches.of(0), Rotation2d.k180deg)), constraints, 0));
+                AutoBuilder.pathfindToPose(Landmark.TOWER.get(new Transform2d(Inches.of(Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 + 5 + 36), Inches.of(0), Rotation2d.k180deg)), constraints, 0));
 
         NamedCommands.registerCommand("Outpost",
-            AutoBuilder.pathfindToPose(Landmark.OUTPOST.get(new Transform2d(Inches.of(Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 + 10), Inches.of(0), Rotation2d.k180deg)), constraints, 0));
+                AutoBuilder.pathfindToPose(Landmark.OUTPOST.get(new Transform2d(Inches.of(Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 + 10), Inches.of(0), Rotation2d.k180deg)), constraints, 0));
 
         NamedCommands.registerCommand("Depot",
-            AutoBuilder.pathfindToPose(Landmark.DEPOT.get(new Transform2d(Inches.of(0), Inches.of(0), Rotation2d.k180deg)), constraints, 0));
+                AutoBuilder.pathfindToPose(Landmark.DEPOT.get(new Transform2d(Inches.of(0), Inches.of(0), Rotation2d.k180deg)), constraints, 0));
 
         NamedCommands.registerCommand("Hub",
-            AutoBuilder.pathfindToPose(Landmark.HUB.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.kZero)), constraints, 0));
+                AutoBuilder.pathfindToPose(Landmark.HUB.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.kZero)), constraints, 0));
 
         NamedCommands.registerCommand("RightBump",
-            AutoBuilder.pathfindToPose(Landmark.RIGHT_BUMP.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.fromDegrees(0))), constraints, 0));
+                AutoBuilder.pathfindToPose(Landmark.RIGHT_BUMP.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.fromDegrees(0))), constraints, 0));
 
         NamedCommands.registerCommand("LeftBump",
-            AutoBuilder.pathfindToPose(Landmark.LEFT_BUMP.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.fromDegrees(0))), constraints, 0));
+                AutoBuilder.pathfindToPose(Landmark.LEFT_BUMP.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.fromDegrees(0))), constraints, 0));
 
         NamedCommands.registerCommand("RightTrench",
-            AutoBuilder.pathfindToPose(Landmark.RIGHT_TRENCH.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.fromDegrees(0))), constraints, 0));
+                AutoBuilder.pathfindToPose(Landmark.RIGHT_TRENCH.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.fromDegrees(0))), constraints, 0));
 
         NamedCommands.registerCommand("LeftTrench",
-            AutoBuilder.pathfindToPose(Landmark.LEFT_TRENCH.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.fromDegrees(0))), constraints, 0));
+                AutoBuilder.pathfindToPose(Landmark.LEFT_TRENCH.get(new Transform2d(Inches.of(-24 - Constants.RobotDimensions.BUMPER_WIDTH.in(Inches)*0.5 - 2), Inches.of(0), Rotation2d.fromDegrees(0))), constraints, 0));
     }
-    
+
     /**
      * Use this method to define your trigger->command mappings. Triggers can be created via the
      * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -146,25 +146,25 @@ public class RobotContainer {
 
         // Idle the swerve while disabled so motors hold neutral mode instead of fighting
         RobotModeTriggers.disabled().whileTrue(
-            swerve.applyRequest(SwerveRequest.Idle::new).ignoringDisable(true)
+                swerve.applyRequest(SwerveRequest.Idle::new).ignoringDisable(true)
         );
 
         // LED state machine
         neoStrip.setBreathing(Color.kOrangeRed, 0.5, 0.05);
         RobotModeTriggers.teleop().onTrue(
-            Commands.runOnce(() -> neoStrip.setDualBreathing(Color.kBlue, Color.kOrange, 2.0, 0.05))
+                Commands.runOnce(() -> neoStrip.setDualBreathing(Color.kBlue, Color.kOrange, 2.0, 0.05))
         );
         RobotModeTriggers.autonomous().onTrue(
-            Commands.runOnce(() -> neoStrip.setSolid(Color.kDarkMagenta))
+                Commands.runOnce(() -> neoStrip.setSolid(Color.kDarkMagenta))
         );
         RobotModeTriggers.disabled().onTrue(
-            Commands.runOnce(() -> neoStrip.setBreathing(Color.kOrangeRed, 0.5, 0.05))
-                .ignoringDisable(true)
+                Commands.runOnce(() -> neoStrip.setBreathing(Color.kOrangeRed, 0.5, 0.05))
+                        .ignoringDisable(true)
         );
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
-            .onTrue(intake.homingCommand())
-            .onTrue(hanger.homingCommand());
+                .onTrue(intake.homingCommand())
+                .onTrue(hanger.homingCommand());
 
         driver.R2().whileTrue(subsystemCommands.aimAndShoot());
         driver.R1().whileTrue(subsystemCommands.shootManually());
@@ -179,10 +179,11 @@ public class RobotContainer {
 
     private void configureManualDriveBindings() {
         final ManualDriveCommand manualDriveCommand = new ManualDriveCommand(
-            swerve, 
-            () -> -driver.getLeftY(), 
-            () -> -driver.getLeftX(), 
-            () -> -driver.getRightX()
+                swerve,
+                () -> -driver.getLeftY(),
+                () -> -driver.getLeftX(),
+                () -> -driver.getRightX(),
+                driver.L2()  // intake trigger
         );
         swerve.setDefaultCommand(manualDriveCommand);
         driver.cross().onTrue(Commands.runOnce(() -> manualDriveCommand.setLockedHeading(Rotation2d.k180deg)));
@@ -194,16 +195,16 @@ public class RobotContainer {
 
     private Command updateVisionCommand() {
         return limelight.run(() -> {
-            final Pose2d currentRobotPose = swerve.getState().Pose;
-            final Optional<Limelight.Measurement> measurement = limelight.getMeasurement(currentRobotPose);
-            measurement.ifPresent(m -> {
-                swerve.addVisionMeasurement(
-                    m.poseEstimate.pose, 
-                    m.poseEstimate.timestampSeconds,
-                    m.standardDeviations
-                );
-            });
-        })
-        .ignoringDisable(true);
+                    final Pose2d currentRobotPose = swerve.getState().Pose;
+                    final Optional<Limelight.Measurement> measurement = limelight.getMeasurement(currentRobotPose);
+                    measurement.ifPresent(m -> {
+                        swerve.addVisionMeasurement(
+                                m.poseEstimate.pose,
+                                m.poseEstimate.timestampSeconds,
+                                m.standardDeviations
+                        );
+                    });
+                })
+                .ignoringDisable(true);
     }
 }

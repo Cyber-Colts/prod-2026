@@ -72,21 +72,24 @@ public final class SubsystemCommands {
     public Command aimAndShoot() {
         // Commented out auto-align - just regulate RPM and hood position
         // final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, forwardInput, leftInput);
+        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, forwardInput, leftInput);
         final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getState().Pose);
         return Commands.parallel(
             // aimAndDriveCommand, // Auto-align disabled
+                        aimAndDriveCommand,
             Commands.waitSeconds(0.25)
                 .andThen(prepareShotCommand),
             // Removed auto-aim check from waitUntil - now just wait for shot to be ready
-            Commands.waitUntil(() -> prepareShotCommand.isReadyToShoot())
-                .andThen(feed())
+            //Commands.waitUntil(() -> prepareShotCommand.isReadyToShoot())
+                Commands.waitUntil(() -> aimAndDriveCommand.isAimed() && prepareShotCommand.isReadyToShoot())
+                        .andThen(feed())
         );
     }
 
     public Command shootManually() {
         return shooter.dashboardSpinUpCommand()
             .andThen(feed())
-            .handleInterrupt(() -> shooter.stop());
+            .handleInterrupt(shooter::stop);
     }
 
     private Command feed() {

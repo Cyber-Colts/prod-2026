@@ -85,6 +85,7 @@ public final class AutoRoutines {
                 startToOutpost.cmd()
             )
         );
+        startToOutpost.atTimeBeforeEnd(0.1).onTrue(intake.intakeGetOut());
 
         routine.observe(hanger::isHomed).onTrue(
             Commands.sequence(
@@ -93,8 +94,7 @@ public final class AutoRoutines {
             )
         );
         //intake.intakeCommand();
-        startToOutpost.atTimeBeforeEnd(2).onTrue(intake.intakeGetOut());
-        startToOutpost.doneDelayed(1).onTrue(outpostToDepot.cmd());
+        startToOutpost.doneDelayed(6).onTrue(outpostToDepot.cmd());
 
         //outpostToDepot.atTimeBeforeEnd(1).onTrue(intake.intakeCommand());
         outpostToDepot.atTimeBeforeEnd(1).onTrue(Commands.parallel(
@@ -103,9 +103,17 @@ public final class AutoRoutines {
                     ));
         outpostToDepot.doneDelayed(0.5).onTrue(
                     Commands.sequence(
-                        subsystemCommands.shootManually()
-                            .withTimeout(5)
-                    )
+                        shooter.spinUpCommand(3090),
+                        Commands.sequence(
+                            Commands.waitSeconds(0.25),
+                            Commands.parallel(
+                                feeder.feedCommand(),
+                                Commands.waitSeconds(0.125)
+                                    .andThen(floor.feedCommand().alongWith(intake.agitateCommand()))
+                            )
+                        )
+                    ).handleInterrupt(shooter::stop)
+                        .withTimeout(8)
         );
         //depotToShootingPose.active().whileTrue(limelight.idle());
         //depotToShootingPose.atTime(0.5).onTrue(

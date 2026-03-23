@@ -36,7 +36,7 @@ import frc.robot.Ports;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(5000);
+        INTAKE(4000);
 
         private final double rpm;
 
@@ -52,8 +52,8 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(110),
         STOWED(100),
-        INTAKE(-4.5),
-        AGITATE(20);
+        INTAKE(-3.7),
+        AGITATE(25);
 
         private final double degrees;
 
@@ -135,9 +135,9 @@ public class Intake extends SubsystemBase {
                                 .withSupplyCurrentLimitEnable(true)
                 ).withSlot0(
                         new Slot0Configs()
-                                .withKP(1)
+                                .withKP(5)
                                 .withKI(0)
-                                .withKD(0)
+                                .withKD(0.5)
                                 .withKV(12.0 / KrakenX60.kFreeSpeed.in(RotationsPerSecond)) // 12 volts when requesting max RPS
                 );
         rollerMotor.getConfigurator().apply(config);
@@ -197,7 +197,7 @@ public class Intake extends SubsystemBase {
     }
 
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.STOP))
+        return runOnce(() -> setRollerPercentOutput(0))
                 .andThen(
                         Commands.sequence(
                                         runOnce(() -> set(Position.AGITATE)),
@@ -209,7 +209,7 @@ public class Intake extends SubsystemBase {
                 )
                 .handleInterrupt(() -> {
                     set(Position.INTAKE);
-                    set(Speed.STOP);
+                    setRollerPercentOutput(0);
                 });
     }
 

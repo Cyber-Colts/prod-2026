@@ -45,10 +45,12 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import frc.robot.oldeLandmarks;
 import frc.robot.LimelightHelpers;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.Landmark;
 import org.littletonrobotics.junction.Logger;
 
 public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
@@ -77,6 +79,28 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
+
+    // ---- Odometry offset selection ----
+    public enum OdometryOffset {
+        NONE("None"),
+        RIGHT_START("Right Start"),
+        LEFT_START("Left Start"),
+        MIDDLE_START("Middle Start");
+
+        private final String displayName;
+
+        OdometryOffset(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    private OdometryOffset selectedOffset = OdometryOffset.NONE;
+    private OdometryOffset lastSelectedOffset = OdometryOffset.NONE;
+    private final SendableChooser<OdometryOffset> offsetChooser = new SendableChooser<>();
 
     // ---- AdvantageKit / AdvantageScope telemetry state ----
     private SwerveModuleState[] m_lastSetpoints = new SwerveModuleState[] {
@@ -248,7 +272,14 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
                         null);
             }
         });
-        
+
+        // ---- SmartDashboard Odometry Offset Selection ----
+        offsetChooser.setDefaultOption("None", OdometryOffset.NONE);
+        offsetChooser.addOption("Right Start", OdometryOffset.RIGHT_START);
+        offsetChooser.addOption("Left Start", OdometryOffset.LEFT_START);
+        offsetChooser.addOption("Middle Start", OdometryOffset.MIDDLE_START);
+        SmartDashboard.putData("Odometry/Offset Chooser", offsetChooser);
+
         if (Utils.isSimulation()) {
             startSimThread();
         }
@@ -366,6 +397,9 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
     @Override
     public void periodic() {
+        // Update odometry offset selection from SmartDashboard
+        updateOdometryOffsetSelection();
+
         // Limelight target ID
         currentTargetID = LimelightHelpers.getFiducialID("limelight");
 
@@ -444,6 +478,52 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
                 originalPose.getY(),
                 originalPose.getRotation()
         );
+    }
+
+    /**
+     * Applies the selected odometry offset based on the chosen start position.
+     * This resets the odometry to the selected starting location.
+     */
+    public void applyOdometryOffset() {
+        if (selectedOffset == OdometryOffset.NONE) {
+            return;
+        }
+
+        Pose2d offsetPose = switch (selectedOffset) {
+            case RIGHT_START -> Landmark.RIGHT_START.get();
+            case LEFT_START -> Landmark.LEFT_START.get();
+            case MIDDLE_START -> Landmark.MIDDLE_START.get();
+            default -> getState().Pose;
+        };
+
+        resetPose(offsetPose);
+        SmartDashboard.putString("Odometry/Last Applied Offset", selectedOffset.getDisplayName());
+        SmartDashboard.putNumber("Odometry/Offset X", offsetPose.getX());
+        SmartDashboard.putNumber("Odometry/Offset Y", offsetPose.getY());
+        SmartDashboard.putNumber("Odometry/Offset Rotation", offsetPose.getRotation().getDegrees());
+    }
+
+    /**
+     * Returns a command that applies the selected odometry offset when executed.
+     */
+    public Command applyOdometryOffsetCommand() {
+        return runOnce(this::applyOdometryOffset);
+    }
+
+    /**
+     * Updates the selected odometry offset from SmartDashboard.
+     * Automatically applies the offset when the selection changes.
+     */
+    private void updateOdometryOffsetSelection() {
+        selectedOffset = offsetChooser.getSelected();
+        
+        // If selection changed from last time, apply the new offset
+        if (selectedOffset != lastSelectedOffset) {
+            lastSelectedOffset = selectedOffset;
+            if (selectedOffset != OdometryOffset.NONE) {
+                applyOdometryOffset();
+            }
+        }
     }
 
     /** Returns the current measured chassis speeds. */

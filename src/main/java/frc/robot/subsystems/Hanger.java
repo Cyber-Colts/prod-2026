@@ -84,7 +84,7 @@ public class Hanger extends SubsystemBase {
             )
             .withSlot0(
                 new Slot0Configs()
-                    .withKP(10)
+                    .withKP(5)
                     .withKI(0)
                     .withKD(0)
                     .withKV(12.0 / KrakenX60.kFreeSpeed.in(RotationsPerSecond)) // 12 volts when requesting max RPS
@@ -115,7 +115,7 @@ public class Hanger extends SubsystemBase {
 
     public Command homingCommand() {
         return Commands.sequence(
-            runOnce(() -> setPercentOutput(-0.25)),
+            runOnce(() -> setPercentOutput(-0.12)),
             Commands.waitUntil(() -> motor.getSupplyCurrent().getValue().in(Amps) > 0.4),
             runOnce(() -> {
                 motor.setPosition(Position.HOMED.motorAngle());
