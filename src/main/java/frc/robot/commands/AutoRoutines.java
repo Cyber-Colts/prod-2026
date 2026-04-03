@@ -1,7 +1,6 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.commands;
 
 import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$0;
@@ -41,14 +40,14 @@ public final class AutoRoutines {
     private final AutoChooser autoChooser;
 
     public AutoRoutines(
-        Swerve swerve,
-        Intake intake,
-        Floor floor,
-        Feeder feeder,
-        Shooter shooter,
-        Hood hood,
-        Hanger hanger,
-        Limelight limelight
+            Swerve swerve,
+            Intake intake,
+            Floor floor,
+            Feeder feeder,
+            Shooter shooter,
+            Hood hood,
+            Hanger hanger,
+            Limelight limelight
     ) {
         this.swerve = swerve;
         this.intake = intake;
@@ -80,39 +79,39 @@ public final class AutoRoutines {
         //final AutoTrajectory shootingPoseToTower = OutpostAndDepotTrajectory$3.asAutoTraj(routine);
 
         routine.active().onTrue(
-            Commands.sequence(
-                startToOutpost.resetOdometry(),
-                startToOutpost.cmd()
-            )
+                Commands.sequence(
+                        startToOutpost.resetOdometry(),
+                        startToOutpost.cmd()
+                )
         );
         startToOutpost.atTimeBeforeEnd(0.1).onTrue(intake.intakeGetOut());
 
         routine.observe(hanger::isHomed).onTrue(
-            Commands.sequence(
-                Commands.waitSeconds(0.5),
-                intake.runOnce(() -> intake.set(Intake.Position.INTAKE))
-            )
+                Commands.sequence(
+                        Commands.waitSeconds(0.5),
+                        intake.runOnce(() -> intake.set(Intake.Position.INTAKE))
+                )
         );
         //intake.intakeCommand();
         startToOutpost.doneDelayed(6).onTrue(outpostToDepot.cmd());
 
         //outpostToDepot.atTimeBeforeEnd(1).onTrue(intake.intakeCommand());
         outpostToDepot.atTimeBeforeEnd(1).onTrue(Commands.parallel(
-                        shooter.spinUpCommand(2600),
-                        hood.positionCommand(0.32)
-                    ));
+                shooter.spinUpCommand(2600),
+                hood.positionCommand(0.32)
+        ));
         outpostToDepot.doneDelayed(0.5).onTrue(
-                    Commands.sequence(
-                        shooter.spinUpCommand(3090),
-                        Commands.sequence(
-                            Commands.waitSeconds(0.25),
-                            Commands.parallel(
-                                feeder.feedCommand(),
-                                Commands.waitSeconds(0.125)
-                                    .andThen(floor.feedCommand().alongWith(intake.agitateCommand()))
-                            )
-                        )
-                    ).handleInterrupt(shooter::stop)
+                Commands.sequence(
+                                shooter.spinUpCommand(3090),
+                                Commands.sequence(
+                                        Commands.waitSeconds(0.25),
+                                        Commands.parallel(
+                                                feeder.feedCommand(),
+                                                Commands.waitSeconds(0.125)
+                                                        .andThen(floor.feedCommand().alongWith(intake.agitateCommand()))
+                                        )
+                                )
+                        ).handleInterrupt(shooter::stop)
                         .withTimeout(8)
         );
         //depotToShootingPose.active().whileTrue(limelight.idle());

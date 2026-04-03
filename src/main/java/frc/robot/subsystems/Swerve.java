@@ -52,6 +52,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.Landmark;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
@@ -98,9 +99,10 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         }
     }
 
-    private OdometryOffset selectedOffset = OdometryOffset.NONE;
+    private OdometryOffset selectedOffset = OdometryOffset.MIDDLE_START;
     private OdometryOffset lastSelectedOffset = OdometryOffset.NONE;
     private final SendableChooser<OdometryOffset> offsetChooser = new SendableChooser<>();
+    private boolean hasInitializedOdometry = false;
 
     // ---- AdvantageKit / AdvantageScope telemetry state ----
     private SwerveModuleState[] m_lastSetpoints = new SwerveModuleState[] {
@@ -274,10 +276,10 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         });
 
         // ---- SmartDashboard Odometry Offset Selection ----
-        offsetChooser.setDefaultOption("None", OdometryOffset.NONE);
+        offsetChooser.setDefaultOption("Middle Start", OdometryOffset.MIDDLE_START);
+        offsetChooser.addOption("None", OdometryOffset.NONE);
         offsetChooser.addOption("Right Start", OdometryOffset.RIGHT_START);
         offsetChooser.addOption("Left Start", OdometryOffset.LEFT_START);
-        offsetChooser.addOption("Middle Start", OdometryOffset.MIDDLE_START);
         SmartDashboard.putData("Odometry/Offset Chooser", offsetChooser);
 
         if (Utils.isSimulation()) {
@@ -397,6 +399,12 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
     @Override
     public void periodic() {
+        // Apply initial odometry offset (middle start) on first periodic call
+        if (!hasInitializedOdometry) {
+            applyOdometryOffset();
+            hasInitializedOdometry = true;
+        }
+
         // Update odometry offset selection from SmartDashboard
         updateOdometryOffsetSelection();
 
@@ -471,6 +479,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     }
 
     /** Returns the current robot pose from the CTRE odometry estimator. */
+    @AutoLogOutput(key = "Odometry/Robot")
     public Pose2d getPose() {
         Pose2d originalPose = getState().Pose;
         return new Pose2d(
@@ -497,10 +506,8 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         };
 
         resetPose(offsetPose);
-        SmartDashboard.putString("Odometry/Last Applied Offset", selectedOffset.getDisplayName());
-        SmartDashboard.putNumber("Odometry/Offset X", offsetPose.getX());
-        SmartDashboard.putNumber("Odometry/Offset Y", offsetPose.getY());
-        SmartDashboard.putNumber("Odometry/Offset Rotation", offsetPose.getRotation().getDegrees());
+        Logger.recordOutput("Odometry/Last Applied Offset", selectedOffset.getDisplayName());
+        Logger.recordOutput("Odometry/AppliedOffsetPose", offsetPose);
     }
 
     /**
