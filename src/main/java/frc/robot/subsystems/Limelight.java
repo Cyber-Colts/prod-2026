@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Meters;
 
 import java.util.Optional;
 
@@ -38,9 +39,9 @@ public class Limelight extends SubsystemBase {
         // This is critical for correct pose estimates when the camera isn't at the robot's origin
         LimelightHelpers.setCameraPose_RobotSpace(
             name,
-            Constants.Limelight.CAMERA_FORWARD_OFFSET_INCHES,
-            Constants.Limelight.CAMERA_SIDE_OFFSET_INCHES,
-            Constants.Limelight.CAMERA_UP_OFFSET_INCHES,
+            Constants.Limelight.CAMERA_FORWARD_OFFSET.in(Meters),
+            Constants.Limelight.CAMERA_SIDE_OFFSET.in(Meters),
+            Constants.Limelight.CAMERA_UP_OFFSET.in(Meters),
             Constants.Limelight.CAMERA_ROLL_DEGREES,
             Constants.Limelight.CAMERA_PITCH_DEGREES,
             Constants.Limelight.CAMERA_YAW_DEGREES

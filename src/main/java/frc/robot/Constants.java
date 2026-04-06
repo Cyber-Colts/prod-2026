@@ -66,11 +66,11 @@ public final class Constants {
     }
 
     public static class Limelight {
-        // Camera position relative to robot center (forward, side, up) in inches
-        public static final double CAMERA_FORWARD_OFFSET_INCHES = 27.027;
-        public static final double CAMERA_SIDE_OFFSET_INCHES = 0.0;
-        public static final double CAMERA_UP_OFFSET_INCHES = 31.066;
-        
+        // Camera position relative to robot center (forward, side, up) in meters
+        public static final Distance CAMERA_FORWARD_OFFSET = Inches.of(27.027);
+        public static final Distance CAMERA_SIDE_OFFSET = Inches.of(0.0);
+        public static final Distance CAMERA_UP_OFFSET = Inches.of(31.066);
+
         // Camera rotation relative to robot (roll, pitch, yaw) in degrees
         // Adjust these based on how your Limelight camera is physically mounted
         // If the camera is rotated 90 degrees clockwise (right), set YAW to 90
