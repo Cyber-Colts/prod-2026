@@ -36,7 +36,7 @@ import frc.robot.Ports;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(4000);
+        INTAKE(4700);
 
         private final double rpm;
 
@@ -52,7 +52,7 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(110),
         STOWED(100),
-        INTAKE(-3.7),
+        INTAKE(-4),
         AGITATE(25);
 
         private final double degrees;
@@ -135,9 +135,9 @@ public class Intake extends SubsystemBase {
                                 .withSupplyCurrentLimitEnable(true)
                 ).withSlot0(
                         new Slot0Configs()
-                                .withKP(5)
-                                .withKI(0)
-                                .withKD(0.5)
+                                .withKP(0.5)
+                                .withKI(2)
+                                .withKD(0)
                                 .withKV(12.0 / KrakenX60.kFreeSpeed.in(RotationsPerSecond)) // 12 volts when requesting max RPS
                 );
         rollerMotor.getConfigurator().apply(config);

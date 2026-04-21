@@ -28,7 +28,7 @@ import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
 
 public class Shooter extends SubsystemBase {
-    private static final AngularVelocity kVelocityTolerance = RPM.of(50);
+    private static final AngularVelocity kVelocityTolerance = RPM.of(100);
 
     private final TalonFX leftMotor, middleMotor, rightMotor;
     private final List<TalonFX> motors;
@@ -69,10 +69,15 @@ public class Shooter extends SubsystemBase {
                     .withSupplyCurrentLimitEnable(true)
             )
             .withSlot0(
-                new Slot0Configs()
+                    /*
                     .withKP(0.5)
                     .withKI(2)
                     .withKD(0)
+                     */
+                new Slot0Configs()
+                    .withKP(0.5)
+                    .withKI(2)
+                    .withKD(0.1)
                     .withKV(12.0 / KrakenX60.kFreeSpeed.in(RotationsPerSecond)) // 12 volts when requesting max RPS
             );
         
